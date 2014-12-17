@@ -2,11 +2,12 @@
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 include('config.php');
+$err_level = error_reporting(0);
 $db = new mysqli($dbhost, $dbuser, $dbpass);
-if($db->connect_error) die('Datenbankverbindung nicht möglich. ');
+error_reporting($err_level);
+if($db->connect_error) die("Datenbankverbindung nicht möglich.");
 $db->select_db($dbname);
-
-if(isset($_GET['newtoken']) && $_GET['newtoken']=="newtoken" ) {
+if(true ||  isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
 	// Create new unique token, safe it to db and return ist with the expiry date.
 
 	// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
@@ -21,11 +22,10 @@ if(isset($_GET['newtoken']) && $_GET['newtoken']=="newtoken" ) {
 	// Return/echo token with created and expiry timestamp as json
 	$out = json_encode(array('token' => $token, 'created' => $created, 'expiry' => $expiry));
 }
-// else if ()
-//...
 else {
-	$out = json_encode(null);
+	$out = json_encode(array(1 => 2));
 }
 echo($out);
 $db->close();
 ?>
+
