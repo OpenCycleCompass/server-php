@@ -6,6 +6,7 @@ $err_level = error_reporting(0);
 $db = new mysqli($dbhost, $dbuser, $dbpass);
 error_reporting($err_level);
 if($db->connect_error) die("Datenbankverbindung nicht möglich.");
+$db->set_charset('utf8');
 $db->select_db($dbname);
 if( isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
 	// Create new unique token, safe it to db and return ist with the expiry date.
