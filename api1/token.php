@@ -23,7 +23,7 @@ if( isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
 	$out = json_encode(array('token' => $token, 'created' => $created, 'expiry' => $expiry));
 }
 else {
-	$out = json_encode(array(1 => 2));
+	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 echo($out);
 $db->close();
