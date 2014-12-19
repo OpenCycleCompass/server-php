@@ -7,7 +7,7 @@ $db = new mysqli($dbhost, $dbuser, $dbpass);
 error_reporting($err_level);
 if($db->connect_error) die("Datenbankverbindung nicht möglich.");
 $db->select_db($dbname);
-if(true ||  isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
+if( isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
 	// Create new unique token, safe it to db and return ist with the expiry date.
 
 	// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
