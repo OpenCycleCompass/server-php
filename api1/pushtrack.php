@@ -12,7 +12,7 @@ $db->select_db($dbname);
 if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" ) {
 	// user_token passed by the app.
 	$user_token = $db->real_escape_string($_GET['user_token']);
-	if(verify_token($user_token)) {
+	if(verify_token($user_token, $db)) {
 	// Create new unique track_id
 	// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
 	$track_id = uniqid("tra_", true);
@@ -38,7 +38,7 @@ if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" ) {
 	// Return/echo token with created and expiry timestamp as json
 	$out = json_encode(array('track_id' => $track_id, 'created' => $created));
 	} else {
-		$out = json_encode(array("error" => "Der Token kann nicht validiert werden."));
+		$out = json_encode(array("error" => "Der Token kann nicht verifiziert werden."));
 	}
 } else {
 	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
@@ -46,4 +46,3 @@ if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" ) {
 echo($out);
 $db->close();
 ?>
-
