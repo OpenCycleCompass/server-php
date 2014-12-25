@@ -4,17 +4,17 @@ date_default_timezone_set('Europe/Berlin');
 include('config.php');
 include('functions.php');
 $err_level = error_reporting(0);
-$db = new mysqli($dbhost, $dbuser, $dbpass);
+$my = new mysqli($my_host, $my_user, $my_pass);
 error_reporting($err_level);
-if($db->connect_error) die("Datenbankverbindung nicht möglich.");
-$db->set_charset('utf8');
-$db->select_db($dbname);
+if($my->connect_error) die("Datenbankverbindung nicht möglich.");
+$my->set_charset('utf8');
+$my->select_db($my_name);
 if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['user_token']) && isset($_GET['']) && isset($_GET['']) 
 		&& isset($_GET['']) && isset($_GET[''])) 
 	{
 	// user_token passed by the app.
-	$user_token = $db->real_escape_string($_GET['user_token']);
-	if(verify_token($user_token, $db)) {
+	$user_token = $my->real_escape_string($_GET['user_token']);
+	if(verify_token($user_token, $my)) {
 	// Create new unique track_id
 	// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
 	$track_id = uniqid("tra_", true);
@@ -23,18 +23,18 @@ if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['us
 	$created = time(); 
 
 	// Länge (in Metern) des Tracks
-	$length = $db->real_escape_string($_GET['length']);
+	$length = $my->real_escape_string($_GET['length']);
 	
 	// Dauer (in Sekunden) des Tracks
-	$duration = $db->real_escape_string($_GET['duration']);
+	$duration = $my->real_escape_string($_GET['duration']);
 
 	// Name (vom User festgelegt) des Tracks; max. 49 chars
-	$name = substr($db->real_escape_string($_GET['name']), 0, 48);
+	$name = substr($my->real_escape_string($_GET['name']), 0, 48);
 
 	// Beschreibung (vom User festgelegt) des Tracks; max. 249 chars
-	$comment = substr($db->real_escape_string($_GET['comment']), 0, 248);
+	$comment = substr($my->real_escape_string($_GET['comment']), 0, 248);
 
-	$db->query("INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
+	$my->query("INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
 	VALUES ('".$user_token."', '".$track_id."',  '".$created."',  '".$length."',  '".$duration."',  '".$name."', '".$comment."')");
 
 	// Return/echo token with created and expiry timestamp as json
@@ -46,5 +46,5 @@ if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['us
 	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 echo($out);
-$db->close();
+$my->close();
 ?>
