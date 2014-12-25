@@ -7,5 +7,4 @@ function verify_token($token, $db) {
 		return 0;
 	}
 }
-
 ?>

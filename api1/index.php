@@ -2,8 +2,11 @@
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 include('config.php');
+$err_level = error_reporting(0);
 $db = new mysqli($dbhost, $dbuser, $dbpass);
-if($db->connect_error) die('Datenbankverbindung nicht möglich. ');
+error_reporting($err_level);
+if($db->connect_error) die("Datenbankverbindung nicht möglich.");
+$db->set_charset('utf8');
 $db->select_db($dbname);
 
 

@@ -9,7 +9,9 @@ error_reporting($err_level);
 if($db->connect_error) die("Datenbankverbindung nicht möglich.");
 $db->set_charset('utf8');
 $db->select_db($dbname);
-if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" ) {
+if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['user_token']) && isset($_GET['']) && isset($_GET['']) 
+		&& isset($_GET['']) && isset($_GET[''])) 
+	{
 	// user_token passed by the app.
 	$user_token = $db->real_escape_string($_GET['user_token']);
 	if(verify_token($user_token, $db)) {
