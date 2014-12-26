@@ -9,6 +9,9 @@ error_reporting($err_level);
 if($my->connect_error) die("Datenbankverbindung nicht möglich.");
 $my->set_charset('utf8');
 $my->select_db($my_name);
+
+$pg = pg_connect ( "host=" . $pg_host . " dbname=" . $pg_name . " user=" . $pg_user . " password=" . $pg_pass ) or die ( "Datenbankverbindung (MySQL) nicht möglich." . pg_last_error () );
+
 if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['user_token']) && isset($_GET['']) && isset($_GET['']) 
 		&& isset($_GET['']) && isset($_GET[''])) 
 	{
@@ -46,5 +49,6 @@ if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['us
 	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 echo($out);
+pg_close ( $dbconn );
 $my->close();
 ?>
