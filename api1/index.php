@@ -10,7 +10,7 @@ if ($my->connect_error)
 $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
-$pg = pg_connect ( "host=" . $pg_host . " dbname=" . $pg_name . " user=" . $pg_user . " password=" . $pg_pass ) or die ( "Datenbankverbindung (MySQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 // MySQL Example:
 // $my->real_escape_string($_POST["text"]);

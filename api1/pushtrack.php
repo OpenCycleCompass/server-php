@@ -10,7 +10,7 @@ if($my->connect_error) die("Datenbankverbindung nicht möglich.");
 $my->set_charset('utf8');
 $my->select_db($my_name);
 
-$pg = pg_connect ( "host=" . $pg_host . " dbname=" . $pg_name . " user=" . $pg_user . " password=" . $pg_pass ) or die ( "Datenbankverbindung (MySQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 if( isset($_GET["newtrack"]) && $_GET['newtrack']=="newtrack" && isset($_GET['user_token']) && isset($_GET['']) && isset($_GET['']) 
 		&& isset($_GET['']) && isset($_GET[''])) 
