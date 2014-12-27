@@ -13,8 +13,7 @@ $my->select_db ( $my_name );
 
 $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( $_GET ['user_token'] ) && isset ( $_GET [''] ) && isset ( $_GET [''] ) && isset ( $_GET [''] ) && isset ( $_GET [''] )) {
-	
+if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( $_GET ['user_token'] ) && isset ( $_GET ['length'] ) && isset ( $_GET ['duration'] ) && isset ( $_GET ['name'] ) && isset ( $_GET ['comment'] ) && isset ( $_GET ['data'] )) {
 	// user_token passed by the app.
 	$user_token = $my->real_escape_string ( $_GET ['user_token'] );
 	if (verify_token ( $user_token, $my )) {
@@ -37,8 +36,24 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		// Beschreibung (vom User festgelegt) des Tracks; max. 249 chars
 		$comment = substr ( $my->real_escape_string ( $_GET ['comment'] ), 0, 248 );
 		
+		// data: json-encoded user track
+		// array of (lat, lon, alt, time, speed, additional-info (not used so far) )
+		$data_raw = $_GET ['data'];
+		$data = json_decode($data_raw, true, 3);
+		var_dump($data);
+		foreach ($data as $element) {
+			$lat = floatval($element["lat"]);
+			$lon = floatval($element["lon"]);
+			$alt = floatval($element["alt"]);
+			$time = intval($element["time"]);
+			$result = pg_query ( "INSERT INTO `data1`.`rawdata_server-php` (`id`, `lat`, `lon`, `alt`, `time`, `track_id`)
+			VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
+			pg_free_result ( $result );
+		}
+		
 		$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
 		VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',  '" . $name . "', '" . $comment . "')" );
+		// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 		
 		// Return/echo token with created and expiry timestamp as json
 		$out = json_encode ( array (
