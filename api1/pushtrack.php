@@ -66,7 +66,6 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 
 		$data_raw = $_GET ['data'];
 		$data = json_decode($data_raw, true, 3);
-		var_dump($data); //debug
 		if(count($data)>=1){
 			foreach ($data as $element) {
 				$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
