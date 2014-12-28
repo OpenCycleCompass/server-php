@@ -37,15 +37,15 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$comment = substr ( $my->real_escape_string ( $_GET ['comment'] ), 0, 248 );
 		
 		// data: json-encoded user track
-		// array of (lat, lon, alt, time, speed, additional-info (not used so far) )
+		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
 		$data_raw = $_GET ['data'];
 		$data = json_decode($data_raw, true, 3);
-		var_dump($data);
+		var_dump($data); //debug
 		foreach ($data as $element) {
-			$lat = floatval($element["lat"]);
+			$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
 			$lon = floatval($element["lon"]);
 			$alt = floatval($element["alt"]);
-			$time = intval($element["time"]);
+			$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
 			$result = pg_query ( "INSERT INTO `data1`.`rawdata_server-php` (`id`, `lat`, `lon`, `alt`, `time`, `track_id`)
 			VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
 			pg_free_result ( $result );
