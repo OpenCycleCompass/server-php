@@ -103,7 +103,8 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 			// Return/echo token with created and expiry timestamp as json
 			$out = json_encode ( array (
 					'track_id' => $track_id,
-					'created' => $created 
+					'created' => $created,
+					'nodes' => $nodes 
 			) );
 
 		} else {
