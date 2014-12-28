@@ -68,20 +68,20 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
 			foreach ($data as $element) {
-				if(!isset($element["lat"]) || !isset($element["lon"]) || !isset($element["time"]))
-					break;
-				$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
-				$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
-				$lon = floatval($element["lon"]);
-				if(isset($element["alt"]))
-					$alt = floatval($element["alt"]);
-				else 
-					$alt = "NULL";
-				$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, track_id)
-				VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
-				$result = pg_query ( $query );
-				if ( $result )
-					pg_free_result ( $result );
+				if(isset($element["lat"]) || isset($element["lon"]) || isset($element["time"])){
+					$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
+					$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
+					$lon = floatval($element["lon"]);
+					if(isset($element["alt"]))
+						$alt = floatval($element["alt"]);
+					else 
+						$alt = "NULL";
+					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, track_id)
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
+					$result = pg_query ( $query );
+					if ( $result )
+						pg_free_result ( $result );
+				}
 			}
 			
 			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
