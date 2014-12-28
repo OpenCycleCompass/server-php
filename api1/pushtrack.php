@@ -67,26 +67,33 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$data_raw = $_GET ['data'];
 		$data = json_decode($data_raw, true, 3);
 		var_dump($data); //debug
-		foreach ($data as $element) {
-			$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
-			$lon = floatval($element["lon"]);
-			$alt = floatval($element["alt"]);
-			$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
-			$result = pg_query ( "INSERT INTO rawdata_server-php (id, lat, lon, alt, time, track_id)
-			VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
-			if ( $result )
-				pg_free_result ( $result );
+		if(count($data)>=1){
+			foreach ($data as $element) {
+				$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
+				$lon = floatval($element["lon"]);
+				$alt = floatval($element["alt"]);
+				$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
+				$result = pg_query ( "INSERT INTO rawdata_server-php (id, lat, lon, alt, time, track_id)
+				VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
+				if ( $result )
+					pg_free_result ( $result );
+			}
+			
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',  '" . $name . "', '" . $comment . "')" );
+			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
+			
+			// Return/echo token with created and expiry timestamp as json
+			$out = json_encode ( array (
+					'track_id' => $track_id,
+					'created' => $created 
+			) );
+
+		} else {
+			$out = json_encode ( array (
+					"error" => "Keine Track-Daten enthalten." 
+			) );
 		}
-		
-		$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
-		VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',  '" . $name . "', '" . $comment . "')" );
-		// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
-		
-		// Return/echo token with created and expiry timestamp as json
-		$out = json_encode ( array (
-				'track_id' => $track_id,
-				'created' => $created 
-		) );
 	} else {
 		$out = json_encode ( array (
 				"error" => "Der Token kann nicht verifiziert werden." 
