@@ -72,7 +72,7 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 			$lon = floatval($element["lon"]);
 			$alt = floatval($element["alt"]);
 			$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
-			$result = pg_query ( "INSERT INTO `data1`.`rawdata_server-php` (`id`, `lat`, `lon`, `alt`, `time`, `track_id`)
+			$result = pg_query ( "INSERT INTO rawdata_server-php (id, lat, lon, alt, time, track_id)
 			VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
 			pg_free_result ( $result );
 		}
