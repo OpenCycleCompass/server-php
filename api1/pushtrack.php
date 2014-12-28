@@ -27,10 +27,10 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$created = time ();
 		
 		// Länge (in Metern) des Tracks
-		$length = $my->real_escape_string ( $_GET ['length'] );
+		$length = intval($my->real_escape_string ( $_GET ['length'] ));
 		
 		// Dauer (in Sekunden) des Tracks
-		$duration = $my->real_escape_string ( $_GET ['duration'] );
+		$duration = intval($my->real_escape_string ( $_GET ['duration'] ));
 		
 		// Name (vom User festgelegt) des Tracks; max. 49 chars
 		$name = substr ( $my->real_escape_string ( $_GET ['name'] ), 0, 48 );
