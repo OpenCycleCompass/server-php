@@ -76,7 +76,7 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 				if(isset($element["alt"]))
 					$alt = floatval($element["alt"]);
 				else 
-					$alt = NULL;
+					$alt = "NULL";
 				$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, track_id)
 				VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
 				$result = pg_query ( $query );
