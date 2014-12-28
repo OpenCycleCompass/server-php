@@ -74,7 +74,8 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 			$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
 			$result = pg_query ( "INSERT INTO rawdata_server-php (id, lat, lon, alt, time, track_id)
 			VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
-			pg_free_result ( $result );
+			if ( $result )
+				pg_free_result ( $result );
 		}
 		
 		$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
