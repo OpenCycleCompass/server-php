@@ -68,7 +68,7 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
 			foreach ($data as $element) {
-				if(isset($element["lat"]) || isset($element["lon"]) || isset($element["time"])){
+				if(isset($element["lat"]) && isset($element["lon"]) && isset($element["time"])){
 					$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
 					$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
 					$lon = floatval($element["lon"]);
