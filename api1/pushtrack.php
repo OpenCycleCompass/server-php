@@ -40,6 +40,30 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
+
+	/*
+	 * sample json data:
+	{
+			"1": {
+			"lat": 1.515651,
+			"lon": 2.515651,
+			"alt": 3.515651,
+			"time": 66684584686
+			},
+			"2": {
+			"lat": 7.515651,
+				"lon": 8.515651,
+				"alt": 9.515651,
+				"time": 141445846864
+			},
+  "3": {
+		  "lat": 4.515651,
+		    "lon": 5.515651,
+		    "alt": 6.515651,
+		    "time": 1515458468
+		    }
+		    }*/
+
 		$data_raw = $_GET ['data'];
 		$data = json_decode($data_raw, true, 3);
 		var_dump($data); //debug
