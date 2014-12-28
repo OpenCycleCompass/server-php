@@ -73,6 +73,6 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 	) );
 }
 echo ($out);
-pg_close ( $dbconn );
+pg_close ( $pg );
 $my->close ();
 ?>
