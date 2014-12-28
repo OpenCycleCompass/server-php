@@ -73,13 +73,14 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 				$lon = floatval($element["lon"]);
 				$alt = floatval($element["alt"]);
 				$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
-				$result = pg_query ( "INSERT INTO rawdata_server-php (id, lat, lon, alt, time, track_id)
-				VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')" );
+				$query = "INSERT INTO rawdata_server_php (id, lat, lon, alt, time, track_id)
+				VALUES (NULL,  " . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
+				$result = pg_query ( $query );
 				if ( $result )
 					pg_free_result ( $result );
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server_php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
 			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',  '" . $name . "', '" . $comment . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
