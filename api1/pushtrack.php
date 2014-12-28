@@ -38,6 +38,15 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		// Beschreibung (vom User festgelegt) des Tracks; max. 249 chars
 		$comment = substr ( $my->real_escape_string ( $_GET ['comment'] ), 0, 248 );
 		
+		// Public: Track is public availible (anonymous)
+		if(isset($_GET ['public']))
+			if($_GET ['public'] == "1")
+				$public = 1;
+			else
+				$public = 0;
+		else
+			$public = 0;
+		
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
 
@@ -64,6 +73,7 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		    }
 		    }*/
 
+		$nodes = 0;
 		$data_raw = $_GET ['data'];
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
@@ -79,13 +89,15 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, track_id)
 					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
 					$result = pg_query ( $query );
-					if ( $result )
+					if ( $result ) {
 						pg_free_result ( $result );
+						$nodes++;
+					}
 				}
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `name`, `comment`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',  '" . $name . "', '" . $comment . "')" );
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`) 
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
