@@ -51,7 +51,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="routing">
 				<h1>iBis Routing Preview</h1>
 				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
-				<form id="show_track">
+				<form id="generate_route">
 				 <table>
 					<tr><td><p>Von</p></td></tr>
 					<tr><td><input type="text" name="start_lat" id="start_lat"></td></tr>
@@ -138,6 +138,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 
 		$( "#show_track" ).submit(function( event ) {
 			drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val());
+		});
+		
+		$( "#generate_route" ).submit(function( event ) {
+			drawPolyline( "api1/getroute.php?getroute=getroute"
+				+"&start_lat="+$("#start_lat").val()
+				+"&start_lon="+$("#start_lon").val()
+				+"&end_lat="+$("#end_lon").val()
+				+"&end_lon="+$("#end_lon").val() );
 		});
 	</script>
 <?php
