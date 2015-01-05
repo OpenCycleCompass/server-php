@@ -117,6 +117,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		            //line_points.push([json[i].lat, json[i].lon, json[i].alt]);
 		            line_points[i] = [parseFloat(json[i].lat), parseFloat(json[i].lon)];
 		        }
+		        line_points.length = json.length;
 			});
 			// Create array of lat,lon points.
 			var line_points2 = [
