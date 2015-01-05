@@ -35,7 +35,6 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 } else if(isset($_GET["gettrack"]) && $_GET["gettrack"]=="gettrack" && isset($_GET["track_id"])){
 	// Return point of track $_GET["track_id"]
 	$query = "SELECT lat, lon, alt FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pg, $_GET["track_id"]) . "';";
-	echo($query);
 	$result = pg_query ( $query );
 	if ( $result ) {
 		$data = array();
