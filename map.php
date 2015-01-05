@@ -130,6 +130,9 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			console.log(line_points2);
 			console.log(line_points3);
 			console.log(line_points);
+			console.log(line_points2.length);
+			console.log(line_points3.length);
+			console.log(line_points.length);
 			// create a red polyline from an array of LatLng points
 			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
 			// zoom the map to the polyline
