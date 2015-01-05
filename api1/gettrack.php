@@ -21,11 +21,11 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
-		$list = array();
+		$data = array();
 		while($row = $result->fetch_array()){
-			$list[] = array("name" => $row["name"], "track_id" => $row["track_id"]);
+			$data[] = array("name" => $row["name"], "track_id" => $row["track_id"]);
 		}
-		$out = json_encode($list);
+		$out = json_encode($data);
 	} else {
 		$out = json_encode ( array (
 				"error" => "Keine Tracks vorhanden."
@@ -34,7 +34,22 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	$result->free();
 } else if(isset($_GET["gettrack"]) && $_GET["gettrack"]=="gettrack" && isset($_GET["track_id"])){
 	// Return point of track $_GET["track_id"]
-	
+	$query = "SELECT lat, lon, alt FROM rawdata_server_php WHERE track_id = " . pg_escape_string($pg, $_GET["track_id"]);
+	$result = pg_query ( $query );
+	if ( $result ) {
+		$data = array();
+		$id = 1;
+		while ($row = pg_fetch_row($result)) {
+			$data[] = array("id" => $id, "lat" => $row["lat"],"lon" => $row["lon"],"alt" => $row["alt"]);
+			$id++;
+		}
+		$out = json_encode($data);
+		pg_free_result ( $result );
+	} else {
+		$out = json_encode ( array (
+				"error" => "Track nicht vorhanden."
+		) );
+	}
 } else {
 	$out = json_encode ( array (
 			"error" => "Keine oder falsche Eingabe." 
