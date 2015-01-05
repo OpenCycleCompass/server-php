@@ -32,7 +32,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		<div class="sidebar-content active">
 			<div class="sidebar-pane" id="home">
 				<h1>View iBis Tracks</h1>
-				<form>
+				<form id="show_track">
 					<select>
 					<?php 
 					$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
@@ -45,7 +45,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					}
 					?>
 					</select>
-					<button id="show_track">Anzeigen</button>
+					<input type="submit" value="Anzeigen">
 				</form>
 			</div>
 		</div>
