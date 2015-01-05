@@ -20,6 +20,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+<link rel="stylesheet" href="leaflet-sidebar-v2/leaflet-sidebar.min.css" />
 </head>
 <body style="height: 100%;">
 	<div id="sidebar" class="sidebar collapsed">
@@ -41,14 +42,13 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				</p>
 				<form>
 					<select>
-						<option>
 					<?php 
 					$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
 					$result = $my->query($query);
 					if($result->num_rows >= 1){
 						$data = array();
 						while($row = $result->fetch_array()){
-							echo("<option value=\"" . $row["track_id"] . "\">" . $row["name"] . "</option>\n");
+							echo("\t\t\t\t\t\t<option value=\"" . $row["track_id"] . "\">" . $row["name"] . "</option>\n");
 						}
 					}
 					?>
@@ -70,9 +70,10 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		<div id="map"
 			style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
 	</div>
+	<script src="jquery-2.1.3.min.js"></script>
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-	<script src="jquery-2.1.3.min.js"></script>
+	<script src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
 	<script type="text/javascript">
 		var map = L.map('map').setView([51.505, -0.09], 13);
 
