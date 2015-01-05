@@ -30,6 +30,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 //}
 //pg_free_result ( $result );
 
-pg_close ( $dbconn );
+pg_close ( $pg );
 $my->close ();
 ?>
