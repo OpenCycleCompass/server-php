@@ -111,9 +111,8 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript">
 		$( "#show_track" ).submit(function( event ) {
 			// Get points of selected track an show it on map
-			var line_points;
+			var line_points = [];
 			$.getJSON("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val(), function (json) {
-	        	line_points = new Array(json.length);
 		        for (var i = 0; i < json.length; i++) {
 		            //line_points.push([json[i].lat, json[i].lon, json[i].alt]);
 		            line_points[i] = [parseFloat(json[i].lat), parseFloat(json[i].lon)];
