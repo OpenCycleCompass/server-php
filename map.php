@@ -14,6 +14,7 @@
 	</div>
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+	<script src="jquery-2.1.3.min.js"></script>
 	<script type="text/javascript">
 		var map = L.map('map').setView([51.505, -0.09], 13);
 
