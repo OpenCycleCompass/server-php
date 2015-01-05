@@ -7,8 +7,10 @@
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 </head>
-<body>
-	<div id="map" style="width: 100%; height: 100%"></div>
+<body style="height: 100%;">
+	<div id="wrapper" style="min-height: 100%; padding:0px; margin:0px;">
+		<div id="map" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+	</div>
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 	<script type="text/javascript">
