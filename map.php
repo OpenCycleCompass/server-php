@@ -26,11 +26,12 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<div id="sidebar" class="sidebar collapsed">
 		<!-- Nav tab(s) -->
 		<ul class="sidebar-tabs" role="tablist">
-			<li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+			<li><a href="#gettrack" role="tab"><i class="fa fa-bars"></i></a></li>
+			<li><a href="#routing" role="tab"><i class="fa fa-bars"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
-			<div class="sidebar-pane" id="home">
+			<div class="sidebar-pane" id="gettrack">
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
 					<select id="track_select">
@@ -46,6 +47,10 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					?>
 					</select> <input type="submit" value="Anzeigen">
 				</form>
+			</div>
+			<div class="sidebar-pane" id="routing">
+				<h1>iBis Routing Preview</h1>
+				<p>Routing ...</p>
 			</div>
 		</div>
 	</div>
@@ -72,22 +77,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		}).addTo(map);
 	
 		var sidebar = L.control.sidebar('sidebar').addTo(map);
-		
-		/*L.marker([51.5, -0.09]).addTo(map)
-			.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
-	
-		L.circle([51.508, -0.11], 500, {
-			color: 'red',
-			fillColor: '#f03',
-			fillOpacity: 0.5
-		}).addTo(map).bindPopup("I am a circle.");
-	
-		L.polygon([
-			[51.509, -0.08],
-			[51.503, -0.06],
-			[51.51, -0.047]
-		]).addTo(map).bindPopup("I am a polygon."); */
-
 
 		var line_points = [
 		                   [38.893596444352134, -77.0381498336792],
@@ -129,15 +118,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		            line_points.push(json[i].lat, json[i].lon);
 		        }
 			});
-				
-			var line_points = [
-                   [38.893596444352134, -77.0381498336792],
-                   [38.89337933372204, -77.03792452812195],
-                   [38.89316222242831, -77.03761339187622],
-                   [38.89316222242831, -77.03549981117249],
-                   [38.89340438498248, -77.03514575958252],
-                   [38.893596444352134, -77.0349633693695]
-               ];
 			// create a red polyline from an array of LatLng points
 			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
 			// zoom the map to the polyline
@@ -146,24 +126,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		
 	</script>
 <?php
-// MySQL Example:
-// $my->real_escape_string($_POST["text"]);
-// $query_text = "INSERT INTO `db`.`table` (`id`, `NAME`) VALUES (NULL, '".$whatever."')";
-// result = $my->query($query_text);
-//
-// result->close();
-
-// PostgreSQL Example:
-// Eine SQL-Abfrge ausführen
-// $query = 'SELECT * FROM authors';
-// $result = pg_query ( $query ) or die ( 'Abfrage fehlgeschlagen: ' . pg_last_error () );
-// while ( $line = pg_fetch_array ( $result, null, PGSQL_ASSOC ) ) {
-// foreach ( $line as $col_value ) {
-// $x = $col_value;
-// }
-// }
-// pg_free_result ( $result );
-
 pg_close ( $pg );
 $my->close ();
 ?>
