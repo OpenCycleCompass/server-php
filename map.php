@@ -111,29 +111,16 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript">
 		$( "#show_track" ).submit(function( event ) {
 			// Get points of selected track an show it on map
+			// Create array of lat,lon points
 			var line_points = [];
 			$.getJSON("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val(), function (json) {
 		        for (var i = 0; i < json.length; i++) {
 		            //line_points.push([json[i].lat, json[i].lon, json[i].alt]);
 		            line_points[i] = [parseFloat(json[i].lat), parseFloat(json[i].lon)];
 		        }
-		        line_points.length = json.length;
 			});
-			// Create array of lat,lon points.
-			var line_points2 = [
-			    [38.893596444352134, -77.0381498336792],
-			    [38.89337933372204, -77.03792452812195],
-			    [38.89340438498248, -77.03514575958252],
-			    [38.893596444352134, -77.0349633693695]
-			];
-			alert($.isArray(line_points));
-			alert($.isArray(line_points2));
-			var line_points3 = $.makeArray(line_points);
-			console.log(line_points2);
-			console.log(line_points3);
 			console.log(line_points);
-			console.log(line_points2.length);
-			console.log(line_points3.length);
+			console.log($.isArray(line_points));
 			console.log(line_points.length);
 			// create a red polyline from an array of LatLng points
 			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
