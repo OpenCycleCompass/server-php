@@ -99,18 +99,12 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		function drawPolyline(urlJsonData){
 			// Get points of selected track an show it on map
 			// Create array of lat,lon points
-			var line_points_t = [];
+			var line_points = [];
 			$.getJSON(urlJsonData, function (json) {
 				for (var i = 0; i < json.length; i++) {
-					//line_points.push([json[i].lat, json[i].lon, json[i].alt]);
-					line_points_t.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)));
+					//line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon), parseFloat(json[i].alt)));
+					line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)));
 				}
-
-				var line_points = line_points_t;
-
-				console.log(line_points);
-				console.log($.isArray(line_points));
-				console.log(line_points.length);
 
 				// create a red polyline from an array of LatLng points
 				var polyline = L.polyline(line_points, {color: 'red'}).addTo(map);
@@ -138,6 +132,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 
 		$( "#show_track" ).submit(function( event ) {
 			drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val());
+			event.preventDefault();
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
@@ -146,6 +141,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				+"&start_lon="+$("#start_lon").val()
 				+"&end_lat="+$("#end_lon").val()
 				+"&end_lon="+$("#end_lon").val() );
+			event.preventDefault();
 		});
 	</script>
 <?php
