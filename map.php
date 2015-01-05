@@ -2,9 +2,10 @@
 <html>
 <head>
 <title>ibis - Map View</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-
 </head>
 <body>
 	<div id="map" style="width: 100%; height: 100%"></div>
