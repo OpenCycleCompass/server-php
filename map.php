@@ -88,7 +88,8 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			//id: 'examples.map-i875mjb7'
 		}).addTo(map);
 	
-	
+		var sidebar = L.control.sidebar('sidebar').addTo(map);
+		
 		/*L.marker([51.5, -0.09]).addTo(map)
 			.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
 	
