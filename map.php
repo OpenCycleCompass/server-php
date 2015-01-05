@@ -121,15 +121,16 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	</script>
 	<script type="text/javascript">
 		$( "#show_track" ).submit(function( event ) {
-			alert( "Handler for .submit() called." );
 			// Get points of selected track an show it on map
-			
-		$.get("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val() ,function(data,status){
-			alert("Data: " + data + "\nStatus: " + status);
-			// Decode JSON data and generate line_points array
-			// (TODO)
-		});
-			
+			$.getJSON("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val() ,function(data){
+				alert("Data: " + data);
+				// Decode JSON data and generate line_points array on success
+				 var line_points = [];
+				 $.each( data, function( lat, lon, alt ) {
+				 items.push( [] );
+				 });
+			});
+				
 			var line_points = [
                    [38.893596444352134, -77.0381498336792],
                    [38.89337933372204, -77.03792452812195],
@@ -138,11 +139,12 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
                    [38.89340438498248, -77.03514575958252],
                    [38.893596444352134, -77.0349633693695]
                ];
-		// create a red polyline from an array of LatLng points
-		var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
-		// zoom the map to the polyline
-		map.fitBounds(polyline.getBounds());
+			// create a red polyline from an array of LatLng points
+			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
+			// zoom the map to the polyline
+			map.fitBounds(polyline.getBounds());
 		});
+		
 	</script>
 <?php
 // MySQL Example:
