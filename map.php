@@ -1,3 +1,17 @@
+<?php
+header ( 'Content-Type: text/html; charset=utf-8' );
+date_default_timezone_set ( 'Europe/Berlin' );
+include ('api1/config.php');
+$err_level = error_reporting ( 0 );
+$my = new mysqli ( $my_host, $my_user, $my_pass );
+error_reporting ( $err_level );
+if ($my->connect_error)
+	die ( "Datenbankverbindung (MySQL) nicht möglich." );
+$my->set_charset ( 'utf8' );
+$my->select_db ( $my_name );
+
+$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+?>
 <!doctype html>
 <html>
 <head>
@@ -8,6 +22,50 @@
 	href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 </head>
 <body style="height: 100%;">
+	<div id="sidebar" class="sidebar collapsed">
+		<!-- Nav tabs -->
+		<ul class="sidebar-tabs" role="tablist">
+			<li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+			<li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
+			<li><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
+			<li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+		</ul>
+		<!-- Tab panes -->
+		<div class="sidebar-content active">
+			<div class="sidebar-pane" id="home">
+				<h1>View iBis Tracks</h1>
+				<p>
+					A responsive sidebar for mapping libraries like <a
+						href="http://leafletjs.com/">Leaflet</a> or <a
+						href="http://openlayers.org/">OpenLayers</a>.
+				</p>
+				<form>
+					<select>
+						<option>
+					<?php 
+					$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
+					$result = $my->query($query);
+					if($result->num_rows >= 1){
+						$data = array();
+						while($row = $result->fetch_array()){
+							echo("<option value=\"" . $row["track_id"] . "\">" . $row["name"] . "</option>\n");
+						}
+					}
+					?>
+					</select>
+				</form>
+			</div>
+			<!-- <div class="sidebar-pane" id="profile">
+				<h1>Profile</h1>
+			</div>
+			<div class="sidebar-pane" id="messages">
+				<h1>Messages</h1>
+			</div>
+			<div class="sidebar-pane" id="settings">
+				<h1>Settings</h1>
+			</div> -->
+		</div>
+	</div>
 	<div id="wrapper" style="min-height: 100%; padding: 0px; margin: 0px;">
 		<div id="map"
 			style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
@@ -77,19 +135,6 @@
 		map.on('click', onMapClick);
 	</script>
 <?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
-include ('api1/config.php');
-$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung (MySQL) nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );
-
-$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
-
 // MySQL Example:
 // $my->real_escape_string($_POST["text"]);
 // $query_text = "INSERT INTO `db`.`table` (`id`, `NAME`) VALUES (NULL, '".$whatever."')";
