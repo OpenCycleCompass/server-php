@@ -50,7 +50,18 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			</div>
 			<div class="sidebar-pane" id="routing">
 				<h1>iBis Routing Preview</h1>
-				<p>Routing ...</p>
+				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
+				<form id="show_track">
+				 <table>
+					<tr><td><p>Von</p></td></tr>
+					<tr><td><input type="text" name="start_lat" id="start_lat"></td></tr>
+					<tr><td><input type="text" name="start_lon" id="start_lon"></td></tr>
+					<tr><td><p>Nach</p></td></tr>
+					<tr><td><input type="text" name="end_lat" id="end_lat"></td></tr>
+					<tr><td><input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td><input type="submit" value="Route generieren"></td></tr>
+				 </table>
+				</form>
 			</div>
 		</div>
 	</div>
@@ -98,12 +109,29 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		// zoom the map to the polyline
 		map.fitBounds(polyline.getBounds());
 	
-		var popup = L.popup();
+		var clickTyp = 0;
+		var popup_start = L.popup();
+		var popup_end = L.popup();
 		function onMapClick(e) {
-			popup
-				.setLatLng(e.latlng)
-				.setContent("You clicked the map at " + e.latlng.toString())
-				.openOn(map);
+			if(clickTyp == 0){
+				$("#start_lat").val(e.latlng.lat);
+				$("#start_lon").val(e.latlng.lng);
+				popup_start
+					.setLatLng(e.latlng)
+					.setContent("Start at " + e.latlng.toString())
+					.openOn(map);
+				clickTyp = clickTyp+1;
+			} else if(clickTyp == 1){
+				$("#end_lat").val(e.latlng.lat);
+				$("#end_lon").val(e.latlng.lng);
+				popup_end
+					.setLatLng(e.latlng)
+					.setContent("End at " + e.latlng.toString())
+					.openOn(map);
+				clickTyp = clickTyp+1;
+			} else if(clickTyp >= 2){
+				clickTyp = 0;
+			}
 		}
 
 		map.on('click', onMapClick);
