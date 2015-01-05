@@ -114,6 +114,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			var line_points = [];
 			$.getJSON("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val(), function (json) {
 		        for (var i = 0; i < json.length; i++) {
+		        	line_points = new Array(json.length);
 		            //line_points.push([json[i].lat, json[i].lon, json[i].alt]);
 		            line_points[i] = [parseFloat(json[i].lat), parseFloat(json[i].lon)];
 		        }
