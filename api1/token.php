@@ -15,7 +15,7 @@ if( isset($_GET["newtoken"]) && $_GET['newtoken']=="newtoken" ) {
 	$token = uniqid("ibis_", true);
 
 	$created = time(); // UNIX Timestamp
-	// (Maximale) gültigkeit eines Token: derzeit 1Jahe/365Tage
+	// (Maximale) gültigkeit eines Token: derzeit 1Jahr/365Tage
 	$expiry = time() + (365 * 24 * 60 * 60);
 
 	$my->query("INSERT INTO `ibis_server-php`.`tokens` (`token`, `created`, `expiry`) VALUES ('".$token."', '".$created."', '".$expiry."')");
