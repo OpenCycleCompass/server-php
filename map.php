@@ -24,22 +24,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 </head>
 <body style="height: 100%;">
 	<div id="sidebar" class="sidebar collapsed">
-		<!-- Nav tabs -->
+		<!-- Nav tab(s) -->
 		<ul class="sidebar-tabs" role="tablist">
 			<li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
-			<li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
-			<li><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
-			<li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
 		</ul>
-		<!-- Tab panes -->
+		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
 			<div class="sidebar-pane" id="home">
 				<h1>View iBis Tracks</h1>
-				<p>
-					A responsive sidebar for mapping libraries like <a
-						href="http://leafletjs.com/">Leaflet</a> or <a
-						href="http://openlayers.org/">OpenLayers</a>.
-				</p>
 				<form>
 					<select>
 					<?php 
@@ -53,17 +45,9 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					}
 					?>
 					</select>
+					<button id="show_track">Anzeigen</button>
 				</form>
 			</div>
-			<!-- <div class="sidebar-pane" id="profile">
-				<h1>Profile</h1>
-			</div>
-			<div class="sidebar-pane" id="messages">
-				<h1>Messages</h1>
-			</div>
-			<div class="sidebar-pane" id="settings">
-				<h1>Settings</h1>
-			</div> -->
 		</div>
 	</div>
 	<div id="wrapper" style="min-height: 100%; padding: 0px; margin: 0px;">
@@ -135,6 +119,25 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		}
 	
 		map.on('click', onMapClick);
+	</script>
+	<script type="text/javascript">
+		$( "#target" ).submit(function( event ) {
+			alert( "Handler for .submit() called." );
+			// Get points of selected track an show it on map
+			
+			var line_points = [
+                   [38.893596444352134, -77.0381498336792],
+                   [38.89337933372204, -77.03792452812195],
+                   [38.89316222242831, -77.03761339187622],
+                   [38.89316222242831, -77.03549981117249],
+                   [38.89340438498248, -77.03514575958252],
+                   [38.893596444352134, -77.0349633693695]
+               ];
+			// create a red polyline from an array of LatLng points
+			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
+			// zoom the map to the polyline
+			map.fitBounds(polyline.getBounds());
+			});
 	</script>
 <?php
 // MySQL Example:
