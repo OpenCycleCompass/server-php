@@ -41,8 +41,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 		$data = array();
 		$id = 1;
 		while ($row = pg_fetch_row($result)) {
-			var_dump($row);
-			$data[] = array("id" => $id, "lat" => $row["lat"],"lon" => $row["lon"],"alt" => $row["alt"]);
+			$data[] = array("id" => $id, "lat" => $row[0],"lon" => $row[1],"alt" => $row[2]);
 			$id++;
 		}
 		$out = json_encode($data);
