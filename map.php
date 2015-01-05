@@ -126,8 +126,9 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				alert("Data: " + data);
 				// Decode JSON data and generate line_points array on success
 				 var line_points = [];
-				 $.each( data, function( lat, lon, alt ) {
-				 items.push( [] );
+				 $.each( data, function( key, val ) {
+					 var obj = jQuery.parseJSON( val );
+					 line_points.push( [obj.lat, obj.lon, obj.alt] );
 				 });
 			});
 				
