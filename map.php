@@ -17,6 +17,8 @@
 		var map = L.map('map').setView([51.505, -0.09], 13);
 
 		//L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+		// http://{s}.tile.thunderforest.com/cycle (OpenCycleMap) ist leider nicht über https verfügbar
+		// -> leider MixedContent 
 		L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
 			maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://opencyclemap.org">OpenStreetMap</a> contributors, ' +
