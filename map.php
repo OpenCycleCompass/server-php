@@ -121,7 +121,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		map.on('click', onMapClick);
 	</script>
 	<script type="text/javascript">
-		$( "#target" ).submit(function( event ) {
+		$( "#show_track" ).submit(function( event ) {
 			alert( "Handler for .submit() called." );
 			// Get points of selected track an show it on map
 			
