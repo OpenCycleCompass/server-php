@@ -118,7 +118,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		            line_points.push([json[i].lat, json[i].lon]);
 		        }
 			});
+			var line_points2 = [
+			                   [38.893596444352134, -77.0381498336792],
+			                   [38.89337933372204, -77.03792452812195],
+			                   [38.89340438498248, -77.03514575958252],
+			                   [38.893596444352134, -77.0349633693695]
+			               ];
 			console.log(line_points);
+			console.log(line_points2);
 			// create a red polyline from an array of LatLng points
 			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
 			// zoom the map to the polyline
