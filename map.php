@@ -125,7 +125,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			    [38.89340438498248, -77.03514575958252],
 			    [38.893596444352134, -77.0349633693695]
 			];
-			line_points3 = line_points;
+			var line_points = nline_points;
 			console.log(line_points2);
 			console.log(line_points3);
 			console.log(line_points);
