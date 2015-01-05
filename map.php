@@ -33,7 +33,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="home">
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
-					<select>
+					<select id="track_select">
 					<?php 
 					$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
 					$result = $my->query($query);
@@ -44,8 +44,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 						}
 					}
 					?>
-					</select>
-					<input type="submit" value="Anzeigen">
+					</select> <input type="submit" value="Anzeigen">
 				</form>
 			</div>
 		</div>
@@ -125,6 +124,12 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			alert( "Handler for .submit() called." );
 			// Get points of selected track an show it on map
 			
+		$.get("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val() ,function(data,status){
+			alert("Data: " + data + "\nStatus: " + status);
+			// Decode JSON data and generate line_points array
+			// (TODO)
+		});
+			
 			var line_points = [
                    [38.893596444352134, -77.0381498336792],
                    [38.89337933372204, -77.03792452812195],
@@ -133,11 +138,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
                    [38.89340438498248, -77.03514575958252],
                    [38.893596444352134, -77.0349633693695]
                ];
-			// create a red polyline from an array of LatLng points
-			var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
-			// zoom the map to the polyline
-			map.fitBounds(polyline.getBounds());
-			});
+		// create a red polyline from an array of LatLng points
+		var polyline = L.polyline(line_points, {color: 'green'}).addTo(map);
+		// zoom the map to the polyline
+		map.fitBounds(polyline.getBounds());
+		});
 	</script>
 <?php
 // MySQL Example:
