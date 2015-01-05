@@ -7,7 +7,7 @@
 
 </head>
 <body>
-	<div id="map" height="50%"></div>
+	<div id="map" style="width: 100%; height: 100%"></div>
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 	<script type="text/javascript">
