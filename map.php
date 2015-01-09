@@ -69,11 +69,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<form id="generate_route">
 				 <table>
 					<tr><td><p>Von</p></td></tr>
-					<tr><td><input type="text" name="start_lat" id="start_lat"></td></tr>
-					<tr><td><input type="text" name="start_lon" id="start_lon"></td></tr>
+					<tr><td>Breite:<input type="text" name="start_lat" id="start_lat"></td></tr>
+					<tr><td>Länge:<input type="text" name="start_lon" id="start_lon"></td></tr>
 					<tr><td><p>Nach</p></td></tr>
-					<tr><td><input type="text" name="end_lat" id="end_lat"></td></tr>
-					<tr><td><input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td>Breite:<input type="text" name="end_lat" id="end_lat"></td></tr>
+					<tr><td>Länge:<input type="text" name="end_lon" id="end_lon"></td></tr>
 					<tr><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
