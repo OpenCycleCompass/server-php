@@ -20,7 +20,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 <link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+	href="leaflet/leaflet.css" />
 <link rel="stylesheet" href="leaflet-sidebar-v2/leaflet-sidebar.min.css" />
 <style>
 	body {
@@ -29,11 +29,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	}
 	html, body, #map {
 		height: 100%;
-		font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
-	}
-	.lorem {
-		font-style: italic;
-		color: #AAA;
+		font: 10pt "Helvetica Neue", Helvetica, sans-serif;
 	}
 </style>
 </head>
@@ -49,7 +45,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="gettrack">
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
-					<select id="track_select">
+					<label for="track_select">Track anzeigen</label><select id="track_select">
 					<?php 
 					$query = "SELECT `name`,`track_id`, `nodes` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
 					$result = $my->query($query);
@@ -69,11 +65,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<form id="generate_route">
 				 <table>
 					<tr><td><p>Von</p></td></tr>
-					<tr><td>Breite:<input type="text" name="start_lat" id="start_lat"></td></tr>
-					<tr><td>Länge:<input type="text" name="start_lon" id="start_lon"></td></tr>
+					<tr><td><label for="start_lat">Breite:</label><input type="text" name="start_lat" id="start_lat"></td></tr>
+					<tr><td><label for="start_lon">Länge:</label><input type="text" name="start_lon" id="start_lon"></td></tr>
 					<tr><td><p>Nach</p></td></tr>
-					<tr><td>Breite:<input type="text" name="end_lat" id="end_lat"></td></tr>
-					<tr><td>Länge:<input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td><label for="end_lat">Breite:</label><input type="text" name="end_lat" id="end_lat"></td></tr>
+					<tr><td><label for="end_lon">Länge:</label><input type="text" name="end_lon" id="end_lon"></td></tr>
 					<tr><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
@@ -83,9 +79,9 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	
 	<div id="map" class="sidebar-map"></div>
 	
-	<script src="jquery-2.1.3.min.js"></script>
+	<script src="jquery/jquery-2.1.3.min.js"></script>
 	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+		src="leaflet/leaflet.js"></script>
 	<script src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
 	<script type="text/javascript">
 		function onMapClick(e) {
