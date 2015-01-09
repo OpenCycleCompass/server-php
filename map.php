@@ -167,7 +167,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		map.on('click', onMapClick);
 
 		$( "#show_track" ).submit(function( event ) {
-			drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val());
+			$('#track_select option:selected').each(function( ) {
+				drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id=" + $(this).val());
+			});
+
+			//drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val());
 			event.preventDefault();
 		});
 		
