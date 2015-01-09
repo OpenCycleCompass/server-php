@@ -46,16 +46,28 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
 					<label for="track_select">Track anzeigen</label><select id="track_select">
-					<?php 
-					$query = "SELECT `name`,`track_id`, `nodes` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
+					<?php
+					// options are generated with JS when document is ready to handle thousends of tracks an multiple pages
+					/*$query = "SELECT `name`,`track_id`, `nodes` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
 					$result = $my->query($query);
 					if($result->num_rows >= 1){
 						$data = array();
 						while($row = $result->fetch_array()){
 							echo("\t\t\t\t\t\t<option value=\"" . $row["track_id"] . "\">" . $row["name"] . "  " . "(" . $row["nodes"] . " Punkte)</option>\n");
 						}
-					}
+					}*/
 					?>
+					</select> <input type="submit" value="Anzeigen">
+				</form>
+				Tracks:
+
+				<form id="show_track_num">
+					<label for="track_select_num">Track anzeigen</label><select id="track_select_num">
+						<option value="0">0..99</option>
+						<option value="100">100..199</option>
+						<option value="200">200..299</option>
+						<option value="300">300..399</option>
+						<option value="400">400..499</option>
 					</select> <input type="submit" value="Anzeigen">
 				</form>
 			</div>
@@ -79,11 +91,25 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	
 	<div id="map" class="sidebar-map"></div>
 	
-	<script src="jquery/jquery-2.1.3.min.js"></script>
-	<script
-		src="leaflet/leaflet.js"></script>
-	<script src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
+	<script type="text/javascript" src="jquery/jquery-2.1.3.min.js"></script>
+	<script type="text/javascript" src="leaflet/leaflet.js"></script>
+	<script type="text/javascript" src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
 	<script type="text/javascript">
+		$( document ).ready(function() {
+			setTrackSelectOptions($("#track_select_num select"));
+		});
+
+		function setTrackSelectOptions(num) {
+			var options_uri = "api1/gettrack.php?tracklist=tracklist&num=" + num;
+			$.getJSON(options_uri, function (json) {
+				var options = "";
+				for (var i = 0; i< json.length; i++) {
+					options += "<option value=\"" + json[i].track_id + "\">" + json[i].name + "</option>";
+				}
+				$('select #show_track').append(options);
+			});
+		}
+
 		function onMapClick(e) {
 			if(clickTyp == 0){
 				$("#start_lat").val(e.latlng.lat);

@@ -18,7 +18,12 @@ if(!$pg)
 if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	// Return list of tracks (name and track_id) 
 
-	$query = "SELECT `name`,`track_id` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
+	if(isset($_GET["num"])){
+		$start_num = $my->real_escape_string($_GET["num"]);
+	} else {
+		$start_num = "0";
+	}
+	$query = "SELECT `name`,`track_id`,`created` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",100;";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		$data = array();
