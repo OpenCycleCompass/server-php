@@ -45,32 +45,21 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="gettrack">
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
-					<label for="track_select">Track anzeigen</label><select id="track_select">
-					<?php
-					// options are generated with JS when document is ready to handle thousends of tracks an multiple pages
-					/*$query = "SELECT `name`,`track_id`, `nodes` FROM `ibis_server-php`.`tracks` LIMIT 10000;";
-					$result = $my->query($query);
-					if($result->num_rows >= 1){
-						$data = array();
-						while($row = $result->fetch_array()){
-							echo("\t\t\t\t\t\t<option value=\"" . $row["track_id"] . "\">" . $row["name"] . "  " . "(" . $row["nodes"] . " Punkte)</option>\n");
-						}
-					}*/
-					?>
-					</select> <input type="submit" value="Anzeigen">
-				</form>
-				Tracks:
+					<label for="track_select">Track(s) anzeigen</label><select id="track_select" multiple="multiple">
 
-				<form id="show_track_num">
-					<label for="track_select_num">Track anzeigen</label><select id="track_select_num">
+					</select>
+					<input type="submit" value="Anzeigen">
+					<label for="track_select_num">Track Auswahl:</label><select id="track_select_num">
 						<option value="0">0..99</option>
 						<option value="100">100..199</option>
 						<option value="200">200..299</option>
 						<option value="300">300..399</option>
 						<option value="400">400..499</option>
-					</select> <input type="submit" value="Anzeigen">
+					</select>
 				</form>
 			</div>
+
+
 			<div class="sidebar-pane" id="routing">
 				<h1>iBis Routing Preview</h1>
 				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
