@@ -90,7 +90,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript">
 		$( document ).ready( setTrackSelectOptions($("#track_select_num").val()));
 
-		$("#track_select_num").select(setTrackSelectOptions($("#track_select_num").val()));
+		$("#track_select_num").change(setTrackSelectOptions($("#track_select_num").val()));
 
 		function setTrackSelectOptions(num) {
 			var options_uri = "api1/gettrack.php?tracklist=tracklist&num=" + num;
