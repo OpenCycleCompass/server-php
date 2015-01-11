@@ -106,7 +106,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				for (var i = 0; i< json.length; i++) {
 					options += "<option value=\"" + json[i].track_id + "\">" + json[i].name + "</option>";
 				}
-				$('select #show_track').append(options);
+				$('#track_select').append(options);
 			});
 		}
 
