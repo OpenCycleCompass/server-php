@@ -45,10 +45,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="gettrack">
 				<h1>View iBis Tracks</h1>
 				<form id="show_track">
-					<label for="track_select">Track(s) anzeigen</label><select id="track_select" multiple="multiple">
+					<label for="track_select">Track(s) anzeigen</label>
+					<br />
+					<select id="track_select" multiple="multiple" size="25">
 
 					</select>
+					<br />
 					<input type="submit" value="Anzeigen">
+					<br />
 					<label for="track_select_num">Track Auswahl:</label><select id="track_select_num">
 						<option value="0">0..99</option>
 						<option value="100">100..199</option>
