@@ -96,7 +96,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript" src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
 	<script type="text/javascript">
 		$( document ).ready(function() {
-			setTrackSelectOptions($("#track_select_num select"));
+			setTrackSelectOptions($("#track_select_num").val());
 		});
 
 		function setTrackSelectOptions(num) {
