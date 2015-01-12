@@ -28,7 +28,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	if($result->num_rows >= 1){
 		$data = array();
 		while($row = $result->fetch_array()){
-			$data[] = array("name" => $row["name"], "track_id" => $row["track_id"]);
+			$data[] = array("name" => $row["name"] . " (" . date("dd.mm.yyyy HH:ii", intval($row["created"])) . "h)", "track_id" => $row["track_id"]);
 		}
 		$out = json_encode($data);
 	} else {
