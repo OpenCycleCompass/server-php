@@ -23,7 +23,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	} else {
 		$start_num = "0";
 	}
-	$query = "SELECT `name`,`track_id`,`created` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",100;";
+	$query = "SELECT `name`,`track_id`,`created` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",25;";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		$data = array();
