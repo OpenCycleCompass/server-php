@@ -33,7 +33,22 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 		$out = json_encode($data);
 	} else {
 		$out = json_encode ( array (
-				"error" => "Keine Tracks vorhanden."
+			"error" => "Keine Tracks vorhanden."
+		) );
+	}
+	$result->free();
+} else if(isset($_GET["tracknum"]) && $_GET["tracknum"]=="tracknum") {
+	// Return number of tracks (scalar)
+
+	$query = "SELECT count(`id`) FROM `ibis_server-php`.`tracks`;";
+	$result = $my->query($query);
+	if($result->num_rows >= 1){
+		$row = $result->fetch_array();
+		$data = array("num" => $row[0]);
+		$out = json_encode($data);
+	} else {
+		$out = json_encode ( array (
+			"error" => "Keine Tracks vorhanden."
 		) );
 	}
 	$result->free();
