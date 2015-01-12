@@ -171,14 +171,19 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			}
 		}
 		
-		var map = L.map('map').setView([51.505, -0.09], 13);
+		var map = L.map('map').setView([50, 7], 7);
 
 		// http://{s}.tile.thunderforest.com/cycle (OpenCycleMap) ist leider nicht über https verfügbar
 		// -> leider MixedContent 
 		L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
 			maxZoom: 18
 		}).addTo(map);
-	
+
+		navigator.geolocation.getCurrentPosition( function GetLocation(location) {
+			map.panTo([location.coords.latitude, location.coords.longitude]);
+			map.zoomIn(2);
+		});
+
 		var sidebar = L.control.sidebar('sidebar').addTo(map);
 
 	
