@@ -56,11 +56,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					<label for="track_select_num">Track Auswahl:</label>
 					<p id="track_select_num_p">Es sind unbekannt viele Tracks vorhanden</p>
 					<select id="track_select_num">
-						<option value="0">0..99</option>
-						<option value="100">100..199</option>
-						<option value="200">200..299</option>
-						<option value="300">300..399</option>
-						<option value="400">400..499</option>
+						<option value="0">0..24</option>
 					</select>
 				</form>
 			</div>
