@@ -108,7 +108,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				$('#track_select_num_p').replaceWith("<p id=\"track_select_num_p\">Es sind " + json.num + " Tracks vorhanden.</p>");
 				var options = "";
 				for (var i = 0; i < json.num; i = i+100) {
-					options += "<option value=\"" + i + "\">" + i + "..." + i+99 + "</option>";
+					options += "<option value=\"" + i + "\">" + i + "..." + (i+99) + "</option>";
 				}
 				$('#track_select_num').find("option").remove().end()
 				.append(options);
