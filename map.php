@@ -88,7 +88,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript">
 		$( document ).ready( setTrackSelectOptions($("#track_select_num").val()));
 
-		$("#track_select_num").change(setTrackSelectOptions($("#track_select_num").val()));
+		$("#track_select_num").on("change", setTrackSelectOptions( $("#track_select_num").val() ));
 
 		function setTrackSelectOptions(num) {
 			var options_uri = "api1/gettrack.php?tracklist=tracklist&num=" + num;
@@ -97,7 +97,8 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				for (var i = 0; i< json.length; i++) {
 					options += "<option value=\"" + json[i].track_id + "\">" + json[i].name + "</option>";
 				}
-				$('#track_select').append(options);
+				$('#track_select').find("option").remove().end()
+				.append(options);
 			});
 			var num_uri = "api1/gettrack.php?tracknum=tracknum";
 			$.getJSON(num_uri, function (json) {
@@ -146,10 +147,30 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 
 				// create a red polyline from an array of LatLng points
 				var polyline = L.polyline(line_points, {color: 'red'}).addTo(map);
-				// zoom the map to the polyline
-				map.fitBounds(polyline.getBounds());
+				
+				// add lat and lon to array:
+				lats.push(polyline.getBounds().getSouth());
+				lats.push(polyline.getBounds().getNorth());
+				lons.push(polyline.getBounds().getWest());
+				lons.push(polyline.getBounds().getEast());
+				
+				// // zoom the map to the polyline
+				//map.fitBounds(polyline.getBounds());
 			});
 		}
+		
+		function clearMap() {
+			for(i in map._layers) {
+				if(map._layers[i]._path != undefined) {
+					try {
+						map.removeLayer(map._layers[i]);
+					} catch(e) {
+						console.log("problem with " + e + map._layers[i]);
+					}
+				}
+			}
+		}
+		
 		var map = L.map('map').setView([51.505, -0.09], 13);
 
 		// http://{s}.tile.thunderforest.com/cycle (OpenCycleMap) ist leider nicht über https verfügbar
@@ -165,24 +186,39 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		var popup_start = L.popup();
 		var popup_end = L.popup();
 
+		var lats = [];
+		var lons = [];
 
 		map.on('click', onMapClick);
 
 		$( "#show_track" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
+			lats = [];
+			lons = [];
+			// Draw ploylines for any sleected track
 			$('#track_select option:selected').each(function( ) {
 				drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id=" + $(this).val());
 			});
-
-			//drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id="+$("#track_select").val());
+			var latSouth = Math.max.apply(Math, lats);
+			var latNorth = Math.min.apply(Math, lats);
+			var lngWest = Math.max.apply(Math, lons);
+			var lngEast = Math.min.apply(Math, lons);
+			var southWest = L.latLng(latSouth, lngWest);
+			var northEast = L.latLng(latNorth, lngEast);
+			map.fitBounds(L.latLngBounds(southWest, northEast));
+			// prevent reload
 			event.preventDefault();
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
+			// draw polyline for route
 			drawPolyline( "api1/getroute.php?getroute=getroute"
 				+"&start_lat="+$("#start_lat").val()
 				+"&start_lon="+$("#start_lon").val()
 				+"&end_lat="+$("#end_lon").val()
 				+"&end_lon="+$("#end_lon").val() );
+			// prevent reload
 			event.preventDefault();
 		});
 	</script>
