@@ -70,12 +70,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
 				<form id="generate_route">
 				 <table>
-					<tr><td><p>Von</p></td></tr>
+					<tr><td><p id="routing_start_p">Von</p></td></tr>
 					<tr><td><label for="start_lat">Breite:</label><input type="text" name="start_lat" id="start_lat"></td></tr>
 					<tr><td><label for="start_lon">Länge:</label><input type="text" name="start_lon" id="start_lon"></td></tr>
-					<tr><td><p>Nach</p></td></tr>
+					<tr><td><p id="routing_start_id">(id=?)</p></td></tr>
+					<tr><td><p id="routing_end_p">Nach</p></td></tr>
 					<tr><td><label for="end_lat">Breite:</label><input type="text" name="end_lat" id="end_lat"></td></tr>
 					<tr><td><label for="end_lon">Länge:</label><input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td><p id="routing_end_id">(id=?)</p></td></tr>
 					<tr><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
@@ -153,18 +155,13 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					//line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon), parseFloat(json[i].alt)));
 					line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)));
 				}
-
 				// create a red polyline from an array of LatLng points
 				var polyline = L.polyline(line_points, {color: 'red'}).addTo(map);
-				
 				// add lat and lon to array:
 				lats.push(polyline.getBounds().getSouth());
 				lats.push(polyline.getBounds().getNorth());
 				lons.push(polyline.getBounds().getWest());
 				lons.push(polyline.getBounds().getEast());
-				
-				// // zoom the map to the polyline
-				//map.fitBounds(polyline.getBounds());
 			});
 		}
 		
@@ -231,6 +228,8 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
+			lats = [];
+			lons = [];
 			// draw polyline for route
 			drawPolyline( "api1/getroute.php?getroute=getroute"
 				+"&start_lat="+$("#start_lat").val()
@@ -238,7 +237,29 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				+"&end_lat="+$("#end_lon").val()
 				+"&end_lon="+$("#end_lon").val() );
 			// prevent reload
+			var latSouth = Math.max.apply(Math, lats);
+			var latNorth = Math.min.apply(Math, lats);
+			var lngWest = Math.max.apply(Math, lons);
+			var lngEast = Math.min.apply(Math, lons);
+			var southWest = L.latLng(latSouth, lngWest);
+			var northEast = L.latLng(latNorth, lngEast);
+			map.fitBounds(L.latLngBounds(southWest, northEast));
+			
 			event.preventDefault();
+		});
+		
+		$("#routing_start_p").click(function() {
+			var uri = "api1/getroute.php?getid=getid&lat=" + $("#start_lat").val() + "&lon=" + $("#start_lon").val();
+			$.getJSON(uri, function (json) {
+				$('#routing_start_id').replaceWith("<p id=\"routing_start_id\">(id=" + json.id + ")</p>");
+			});
+		});
+		
+		$("#routing_end_p").click(function() {
+			var uri = "api1/getroute.php?getid=getid&lat=" + $("#end_lat").val() + "&lon=" + $("#end_lon").val();
+			$.getJSON(uri, function (json) {
+				$('#routing_end_id').replaceWith("<p id=\"routing_end_id\">(id=" + json.id + ")</p>");
+			});
 		});
 	</script>
 <?php
