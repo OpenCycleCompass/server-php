@@ -47,17 +47,20 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<form id="show_track">
 					<label for="track_select">Track(s) anzeigen</label>
 					<br />
-					<select id="track_select" multiple="multiple" size="25">
+					<select id="track_select" multiple="multiple" size="25" style="overflow: hidden;">
 
 					</select>
 					<br />
-					<input type="submit" value="Anzeigen">
-					<br />
+					<input type="submit" value="Tracks Anzeigen">
+				</form>
+				<br />
+				<form id="track_select_num_form">
 					<label for="track_select_num">Track Auswahl:</label>
 					<p id="track_select_num_p">Es sind unbekannt viele Tracks vorhanden</p>
 					<select id="track_select_num">
 						<option value="0">0..24</option>
 					</select>
+					<input type="submit" value="Wechseln">
 				</form>
 			</div>
 
@@ -86,9 +89,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<script type="text/javascript" src="leaflet/leaflet.js"></script>
 	<script type="text/javascript" src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
 	<script type="text/javascript">
+		$.ajaxSetup({'async': false});
+
 		$( document ).ready( setTrackSelectOptions($("#track_select_num").val()));
 
-		$("#track_select_num").on("change", setTrackSelectOptions( $("#track_select_num").val() ));
+		$("#track_select_num_form").submit( function () {
+			alert($("#track_select_num").val());
+			setTrackSelectOptions($("#track_select_num").val());
+		});
 
 		function setTrackSelectOptions(num) {
 			var options_uri = "api1/gettrack.php?tracklist=tracklist&num=" + num;
@@ -202,16 +210,18 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			lats = [];
 			lons = [];
 			// Draw ploylines for any sleected track
-			$('#track_select option:selected').each(function( ) {
+			$('#track_select option:selected').each(function() {
 				drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id=" + $(this).val());
 			});
-			var latSouth = Math.max.apply(Math, lats);
-			var latNorth = Math.min.apply(Math, lats);
-			var lngWest = Math.max.apply(Math, lons);
-			var lngEast = Math.min.apply(Math, lons);
-			var southWest = L.latLng(latSouth, lngWest);
-			var northEast = L.latLng(latNorth, lngEast);
-			map.fitBounds(L.latLngBounds(southWest, northEast));
+			$('#track_select option:selected').promise().done(function() {
+				var latSouth = Math.max.apply(Math, lats);
+				var latNorth = Math.min.apply(Math, lats);
+				var lngWest = Math.max.apply(Math, lons);
+				var lngEast = Math.min.apply(Math, lons);
+				var southWest = L.latLng(latSouth, lngWest);
+				var northEast = L.latLng(latNorth, lngEast);
+				map.fitBounds(L.latLngBounds(southWest, northEast));
+			});
 			// prevent reload
 			event.preventDefault();
 		});

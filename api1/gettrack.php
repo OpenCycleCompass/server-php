@@ -23,12 +23,12 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	} else {
 		$start_num = "0";
 	}
-	$query = "SELECT `name`,`track_id`,`created` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",25;";
+	$query = "SELECT `name`,`track_id`,`created`,`nodes` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",25;";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		$data = array();
 		while($row = $result->fetch_array()){
-			$data[] = array("name" => $row["name"] . " (" . date("d.m.Y H:i", intval($row["created"])) . "h)", "track_id" => $row["track_id"]);
+			$data[] = array("name" => $row["name"] . " (" . date("d.m.Y H:i", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)", "track_id" => $row["track_id"]);
 		}
 		$out = json_encode($data);
 	} else {
