@@ -94,7 +94,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		$( document ).ready( setTrackSelectOptions($("#track_select_num").val()));
 
 		$("#track_select_num_form").submit( function () {
-			alert($("#track_select_num").val());
 			setTrackSelectOptions($("#track_select_num").val());
 		});
 
@@ -115,8 +114,10 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				for (var i = 0; i < json.num; i = i+25) {
 					options += "<option value=\"" + i + "\">" + i + "..." + (Math.min((i+24),json.num)) + "</option>";
 				}
+				var s_num = $("#track_select_num").val();
 				$('#track_select_num').find("option").remove().end()
 				.append(options);
+				$("#track_select_num").val(s_num);
 			});
 
 		}
