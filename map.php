@@ -224,6 +224,9 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			});
 			// prevent reload
 			event.preventDefault();
+			if (!(window.matchMedia('(min-width: 768px)').matches)) {
+				sidebar.close();
+			}
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
