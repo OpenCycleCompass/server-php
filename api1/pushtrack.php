@@ -78,16 +78,20 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
 			foreach ($data as $element) {
-				if(isset($element["lat"]) && isset($element["lon"]) && isset($element["time"])){
-					$time = intval($element["time"]); 	// UNIX timestamp ist ganzzahlig
+				if(isset($element["lat"]) && isset($element["lon"]) && isset($element["tst"])){
+					$time = intval($element["tst"]); 	// UNIX timestamp ist ganzzahlig
 					$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
 					$lon = floatval($element["lon"]);
 					if(isset($element["alt"]))
 						$alt = floatval($element["alt"]);
 					else 
 						$alt = "NULL";
-					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, track_id)
-					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", '" . $track_id . "')";
+					if(isset($element["spe"]))
+						$spe = floatval($element["spe"]);
+					else 
+						$spe = "NULL";
+					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id)
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "')";
 					$result = pg_query ( $query );
 					if ( $result ) {
 						pg_free_result ( $result );
