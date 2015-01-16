@@ -165,6 +165,71 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			});
 		}
 		
+		
+		function distance(lat1, lon1, lat2, lon2) {
+			var radlat1 = Math.PI * lat1/180;
+			var radlat2 = Math.PI * lat2/180;
+			var radlon1 = Math.PI * lon1/180;
+			var radlon2 = Math.PI * lon2/180;
+			var theta = lon1-lon2;
+			var radtheta = Math.PI * theta/180;
+			var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+			dist = Math.acos(dist);
+			dist = dist * 180/Math.PI;
+			dist = dist * 60 * 1.1515;
+			dist = dist * 1.609344;
+			return dist * 1000;
+		}
+		function drawColorPolyline(urlJsonData){
+			$.getJSON(urlJsonData, function (json) {
+				for (var i = 0; i < json.length-1; i++) {
+					var line_points = [2];
+					// Line from point i to point i+1
+					line_points[0] = L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)); 
+					line_points[1] = L.latLng(parseFloat(json[i+1].lat), parseFloat(json[i+1].lon));
+					
+					// Distance between point i and point i+1
+					var dist = distance(json[i].lat, json[i].lon, json[i+1].lat, json[i+1].lon); // in meters
+					
+					// Speed calculation based on  timestamp difference and distance
+					var dtime = json[i+1].timestamp-json[i].timestamp; 		// in seconds
+					var speed = dist/dtime;		// in m/s (meter/second)
+					
+					// Color of line dependung on Speed
+					var color;
+					var speed_ko = 0.1000;
+					if(speed<1) {
+						color = "#FF0000";
+					} else if(speed<(3*speed_ko)) {
+						color = "#FF4000";
+					} else if(speed<(5*speed_ko)) {
+						color = "#FF8000";
+					} else if(speed<(8*speed_ko)) {
+						color = "#FFC000";
+					} else if(speed<(11*speed_ko)) {
+						color = "#FFFF00";
+					} else if(speed<(14*speed_ko)) {
+						color = "#C0FF00";
+					} else if(speed<(17*speed_ko)) {
+						color = "#80FF00";
+					} else if(speed<(20*speed_ko)) {
+						color = "#40FF00";
+					} else if(speed<(25*speed_ko)) {
+						color = "#10FF00";
+					} else {
+						color = "#0000FF";
+					}
+					
+					var polyline = L.polyline(line_points, {color: color}).addTo(map);
+					lats.push(polyline.getBounds().getSouth());
+					lats.push(polyline.getBounds().getNorth());
+					lons.push(polyline.getBounds().getWest());
+					lons.push(polyline.getBounds().getEast());
+				}
+			});
+		}
+		
+		
 		function clearMap() {
 			for(i in map._layers) {
 				if(map._layers[i]._path != undefined) {
@@ -209,7 +274,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			lons = [];
 			// Draw ploylines for any sleected track
 			$('#track_select option:selected').each(function() {
-				drawPolyline("api1/gettrack.php?gettrack=gettrack&track_id=" + $(this).val());
+				drawColorPolyline("api1/gettrack.php?gettrack=gettrack&track_id=" + $(this).val());
 			});
 			$('#track_select option:selected').promise().done(function() {
 				var latSouth = Math.max.apply(Math, lats);
@@ -228,13 +293,15 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
 			lats = [];
 			lons = [];
 			// draw polyline for route
 			drawPolyline( "api1/getroute.php?getroute=getroute"
 				+"&start_lat="+$("#start_lat").val()
 				+"&start_lon="+$("#start_lon").val()
-				+"&end_lat="+$("#end_lon").val()
+				+"&end_lat="+$("#end_lat").val()
 				+"&end_lon="+$("#end_lon").val() );
 			// prevent reload
 			var latSouth = Math.max.apply(Math, lats);
