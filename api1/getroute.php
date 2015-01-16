@@ -19,7 +19,7 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 	$start_lat = floatval($_GET["start_lat"]);
 	$start_lon = floatval($_GET["start_lon"]);
 	$end_lat = floatval($_GET["end_lat"]);
-	$end_lon = floatval($_GET["end_lat"]);
+	$end_lon = floatval($_GET["end_lon"]);
 	
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
@@ -49,19 +49,21 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 	$result = pg_query ( $query );
 	if ( $result ) {
 		$data = array();
+		$id = 0;
 		while ($row = pg_fetch_row($result)) {
-			$seq = $row[0];
+			//$seq = $row[0];
 			$node = $row[1];
 			$edge = $row[2];
 			$cost = $row[3];
 			
 			$geom = substr($row[4], 11, -1);
-			$s1 = stripos($geom, " ", 0);
-			$s2 = stripos($geom, ",", 0);
-			$lon = substr($geom, 0, $s1);
-			$lat = substr($geom, $s1, ($s2-$s1));
-			if($lat && $lon) {
-				$data[] = array("id" => $seq, "lat" => $lat,"lon" => $lon);
+			$points = explode(",", $geom);
+			foreach($points as $point) {
+				$point_a = explode(" ", $point);
+				if($point_a[0] && $point_a[1]) {
+					$id++;
+					$data[] = array("id" => $id, "lat" => $point_a[1],"lon" => $point_a[0]);
+				}
 			}
 		}
 		$out = json_encode($data);
