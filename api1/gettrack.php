@@ -54,13 +54,13 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	$result->free();
 } else if(isset($_GET["gettrack"]) && $_GET["gettrack"]=="gettrack" && isset($_GET["track_id"])){
 	// Return point of track $_GET["track_id"]
-	$query = "SELECT lat, lon, alt FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pg, $_GET["track_id"]) . "';";
+	$query = "SELECT lat, lon, alt, time, speed FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pg, $_GET["track_id"]) . "';";
 	$result = pg_query ( $query );
 	if ( $result ) {
 		$data = array();
 		$id = 1;
 		while ($row = pg_fetch_row($result)) {
-			$data[] = array("id" => $id, "lat" => $row[0],"lon" => $row[1],"alt" => $row[2]);
+			$data[] = array("id" => $id, "lat" => $row[0],"lon" => $row[1],"alt" => $row[2],"timestamp" => $row[3]);
 			$id++;
 		}
 		$out = json_encode($data);
