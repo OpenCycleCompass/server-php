@@ -37,13 +37,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<div id="sidebar" class="sidebar collapsed">
 		<!-- Nav tab(s) -->
 		<ul class="sidebar-tabs" role="tablist">
-			<li><a href="#gettrack" role="tab">O<i class="fa fa-user"></i></a></li>
-			<li><a href="#routing" role="tab">O<i class="fa fa-bars"></i></a></li>
+			<li><a href="#gettrack_pane" role="tab">O<i class="fa fa-user"></i></a></li>
+			<li><a href="#routing_pane" role="tab">O<i class="fa fa-bars"></i></a></li>
+			<li><a href="#showtopo_pane" role="tab">O<i class="fa fa-bars"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
-			<div class="sidebar-pane" id="gettrack">
-				<h1>View iBis Tracks</h1>
+			<div class="sidebar-pane" id="gettrack_pane">
+				<h1>iBis Tracks Anzeigen</h1>
 				<form id="show_track">
 					<label for="track_select">Track(s) anzeigen</label>
 					<br />
@@ -63,9 +64,8 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					<input type="submit" value="Wechseln">
 				</form>
 			</div>
-
-
-			<div class="sidebar-pane" id="routing">
+			
+			<div class="sidebar-pane" id="routing_pane">
 				<h1>iBis Routing Preview</h1>
 				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
 				<form id="generate_route">
@@ -80,6 +80,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					<tr><td><p id="routing_end_id">(id=?)</p></td></tr>
 					<tr><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
+				</form>
+			</div>
+			
+			<div class="sidebar-pane" id="showtopo_pane">
+				<h1>iBis Topologie Anzeigen</h1>
+				<p>Overlays anzeigen aus Daten der Routing-Datenbank (zum Visualisieren)</p>
+				<form id="showtopo">
+					<input type="submit" value="In der DB enthaltene Kanten visualisieren">
 				</form>
 			</div>
 		</div>
@@ -152,7 +160,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			var line_points = [];
 			$.getJSON(urlJsonData, function (json) {
 				for (var i = 0; i < json.length; i++) {
-					//line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon), parseFloat(json[i].alt)));
 					line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)));
 				}
 				// create a red polyline from an array of LatLng points
@@ -164,7 +171,29 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				lons.push(polyline.getBounds().getEast());
 			});
 		}
-		
+			
+		function drawMultiPolyline(urlJsonData){
+			// Get points of selected track an show it on map
+			// Create array of lat,lon points
+			var line_points = [];
+			$.getJSON(urlJsonData, function (json) {
+				for (var j = 0; j < json.length; j++) {
+					line_points = [];
+					for (var i = 0; i < json[j].length; i++) {
+						if (json[j][i].lat)
+							line_points.push(L.latLng(parseFloat(json[j][i].lat), parseFloat(json[j][i].lon)));
+					}
+					// create a red polyline from an array of LatLng points
+					var polyline = L.polyline(line_points, {color: 'blue'}).addTo(map);
+					// Polylines should be inside current bounds
+					/* // add lat and lon to array:
+					lats.push(polyline.getBounds().getSouth());
+					lats.push(polyline.getBounds().getNorth());
+					lons.push(polyline.getBounds().getWest());
+					lons.push(polyline.getBounds().getEast()); */
+				}
+			});
+		}
 		
 		function distance(lat1, lon1, lat2, lon2) {
 			var radlat1 = Math.PI * lat1/180;
@@ -180,6 +209,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			dist = dist * 1.609344;
 			return dist * 1000;
 		}
+		
 		function drawColorPolyline(urlJsonData){
 			$.getJSON(urlJsonData, function (json) {
 				for (var i = 0; i < json.length-1; i++) {
@@ -187,14 +217,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					// Line from point i to point i+1
 					line_points[0] = L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)); 
 					line_points[1] = L.latLng(parseFloat(json[i+1].lat), parseFloat(json[i+1].lon));
-					
 					// Distance between point i and point i+1
 					var dist = distance(json[i].lat, json[i].lon, json[i+1].lat, json[i+1].lon); // in meters
-					
 					// Speed calculation based on  timestamp difference and distance
 					var dtime = json[i+1].timestamp-json[i].timestamp; 		// in seconds
 					var speed = dist/dtime;		// in m/s (meter/second)
-					
 					// Color of line dependung on Speed
 					var color;
 					var speed_ko = 0.1000;
@@ -219,7 +246,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					} else {
 						color = "#0000FF";
 					}
-					
 					var polyline = L.polyline(line_points, {color: color}).addTo(map);
 					lats.push(polyline.getBounds().getSouth());
 					lats.push(polyline.getBounds().getNorth());
@@ -228,7 +254,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				}
 			});
 		}
-		
 		
 		function clearMap() {
 			for(i in map._layers) {
@@ -311,7 +336,32 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			var southWest = L.latLng(latSouth, lngWest);
 			var northEast = L.latLng(latNorth, lngEast);
 			map.fitBounds(L.latLngBounds(southWest, northEast));
+			event.preventDefault();
+		});
+		
+		$( "#showtopo" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
+			//lats = [];
+			//lons = [];
+			// Get Bound of current leaflet map:
+			var bounds = map.getBounds();
 			
+			// draw polyline for every edge
+			drawMultiPolyline( "api1/gettopo.php?getedges=getedges"
+				+"&start_lat="+bounds.getNorth()
+				+"&start_lon="+bounds.getWest()
+				+"&end_lat="+bounds.getSouth()
+				+"&end_lon="+bounds.getEast() );
+			// Polylines should be inside current bounds
+			/*var latSouth = Math.max.apply(Math, lats);
+			var latNorth = Math.min.apply(Math, lats);
+			var lngWest = Math.max.apply(Math, lons);
+			var lngEast = Math.min.apply(Math, lons);
+			var southWest = L.latLng(latSouth, lngWest);
+			var northEast = L.latLng(latNorth, lngEast);
+			map.fitBounds(L.latLngBounds(southWest, northEast)); */
+			// prevent reload
 			event.preventDefault();
 		});
 		
