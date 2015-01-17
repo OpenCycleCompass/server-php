@@ -18,7 +18,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 <title>ibis - Map View</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="fontawesome/css/font-awesome.min.css" rel="stylesheet">
 <link rel="stylesheet"
 	href="leaflet/leaflet.css" />
 <link rel="stylesheet" href="leaflet-sidebar-v2/leaflet-sidebar.min.css" />
@@ -37,9 +37,10 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 	<div id="sidebar" class="sidebar collapsed">
 		<!-- Nav tab(s) -->
 		<ul class="sidebar-tabs" role="tablist">
-			<li><a href="#gettrack_pane" role="tab">O<i class="fa fa-user"></i></a></li>
-			<li><a href="#routing_pane" role="tab">O<i class="fa fa-bars"></i></a></li>
-			<li><a href="#showtopo_pane" role="tab">O<i class="fa fa-bars"></i></a></li>
+			<li><a href="#gettrack_pane" role="tab"><i class="fa fa-map-marker"></i></a></li>
+			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
+			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
+			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
