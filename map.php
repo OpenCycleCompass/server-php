@@ -96,6 +96,10 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<form id="showedges_staticcost">
 					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
 				</form>
+				<h3>In der DB enthaltene Kanten mit dynamische Kosten visualisieren </h3>
+				<form id="showedges_dyncost">
+					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
+				</form>
 			</div>
 			
 			<div class="sidebar-pane" id="cleanmap_pane">
@@ -239,7 +243,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					var speed = dist/dtime;		// in m/s (meter/second)
 					// Color of line dependung on Speed
 					var color;
-					var speed_co = 0.1000;
+					var speed_co = 0.500;
 					if(speed<1*speed_co) {
 						color = "#FF0000";
 					} else if(speed<(3*speed_co)) {
@@ -402,25 +406,15 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		$( "#showedges_simple" ).submit(function( event ) {
 			// Remove all polylines
 			clearMap();
-			//lats = [];
-			//lons = [];
 			// Get Bound of current leaflet map:
 			var bounds = map.getBounds();
-			
 			// draw polyline for every edge
 			drawMultiPolyline( "api1/gettopo.php?getedges=getedges"
 				+"&start_lat="+bounds.getNorth()
 				+"&start_lon="+bounds.getWest()
 				+"&end_lat="+bounds.getSouth()
 				+"&end_lon="+bounds.getEast() );
-			// Polylines should be inside current bounds
-			/*var latSouth = Math.max.apply(Math, lats);
-			var latNorth = Math.min.apply(Math, lats);
-			var lngWest = Math.max.apply(Math, lons);
-			var lngEast = Math.min.apply(Math, lons);
-			var southWest = L.latLng(latSouth, lngWest);
-			var northEast = L.latLng(latNorth, lngEast);
-			map.fitBounds(L.latLngBounds(southWest, northEast)); */
+			// (Polylines should be inside current bounds)
 			// prevent reload
 			event.preventDefault();
 		});
@@ -428,25 +422,31 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		$( "#showedges_staticcost" ).submit(function( event ) {
 			// Remove all polylines
 			clearMap();
-			//lats = [];
-			//lons = [];
 			// Get Bound of current leaflet map:
 			var bounds = map.getBounds();
-			
 			// draw polyline for every edge
 			drawMultiColorPolyline( "api1/gettopo.php?getedges=getedges&cost=static"
 				+"&start_lat="+bounds.getNorth()
 				+"&start_lon="+bounds.getWest()
 				+"&end_lat="+bounds.getSouth()
 				+"&end_lon="+bounds.getEast() );
-			// Polylines should be inside current bounds
-			/*var latSouth = Math.max.apply(Math, lats);
-			var latNorth = Math.min.apply(Math, lats);
-			var lngWest = Math.max.apply(Math, lons);
-			var lngEast = Math.min.apply(Math, lons);
-			var southWest = L.latLng(latSouth, lngWest);
-			var northEast = L.latLng(latNorth, lngEast);
-			map.fitBounds(L.latLngBounds(southWest, northEast)); */
+			// (Polylines should be inside current bounds)
+			// prevent reload
+			event.preventDefault();
+		});
+		
+		$( "#showedges_dyncost" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
+			// Get Bound of current leaflet map:
+			var bounds = map.getBounds();
+			// draw polyline for every edge
+			drawMultiColorPolyline( "api1/gettopo.php?getedges=getedges&cost=dyn"
+				+"&start_lat="+bounds.getNorth()
+				+"&start_lon="+bounds.getWest()
+				+"&end_lat="+bounds.getSouth()
+				+"&end_lon="+bounds.getEast() );
+			// (Polylines should be inside current bounds)
 			// prevent reload
 			event.preventDefault();
 		});
