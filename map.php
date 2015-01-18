@@ -41,6 +41,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
+			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
@@ -94,6 +95,14 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				<h3>In der DB enthaltene Kanten mit statischen Kosten visualisieren </h3>
 				<form id="showedges_staticcost">
 					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
+				</form>
+			</div>
+			
+			<div class="sidebar-pane" id="cleanmap_pane">
+				<h1>iBis Overlays</h1>
+				<h3>Alle Overlays entfernen</h3>
+				<form id="cleanmap_form">
+					<input type="submit" value="Entfernen">
 				</form>
 			</div>
 		</div>
@@ -440,6 +449,11 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			map.fitBounds(L.latLngBounds(southWest, northEast)); */
 			// prevent reload
 			event.preventDefault();
+		});
+		
+		$( "#cleanmap_form" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
 		});
 		
 		$("#routing_start_p").click(function() {
