@@ -10,7 +10,7 @@ if ($my->connect_error)
 $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
-$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+//$pgr = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 ?>
 <!doctype html>
 <html>
@@ -41,6 +41,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
+			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
 		<div class="sidebar-content active">
@@ -87,8 +88,25 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			<div class="sidebar-pane" id="showtopo_pane">
 				<h1>iBis Topologie Anzeigen</h1>
 				<p>Overlays anzeigen aus Daten der Routing-Datenbank (zum Visualisieren)</p>
-				<form id="showtopo">
-					<input type="submit" value="In der DB enthaltene Kanten visualisieren">
+				<h3>In der DB enthaltene Kanten visualisieren </h3>
+				<form id="showedges_simple">
+					<input type="submit" value="Visualisieren (blau)">
+				</form>
+				<h3>In der DB enthaltene Kanten mit statischen Kosten visualisieren </h3>
+				<form id="showedges_staticcost">
+					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
+				</form>
+				<h3>In der DB enthaltene Kanten mit dynamische Kosten visualisieren </h3>
+				<form id="showedges_dyncost">
+					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
+				</form>
+			</div>
+			
+			<div class="sidebar-pane" id="cleanmap_pane">
+				<h1>iBis Overlays</h1>
+				<h3>Alle Overlays entfernen</h3>
+				<form id="cleanmap_form">
+					<input type="submit" value="Entfernen">
 				</form>
 			</div>
 		</div>
@@ -225,24 +243,24 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					var speed = dist/dtime;		// in m/s (meter/second)
 					// Color of line dependung on Speed
 					var color;
-					var speed_ko = 0.1000;
-					if(speed<1) {
+					var speed_co = 0.500;
+					if(speed<1*speed_co) {
 						color = "#FF0000";
-					} else if(speed<(3*speed_ko)) {
+					} else if(speed<(3*speed_co)) {
 						color = "#FF4000";
-					} else if(speed<(5*speed_ko)) {
+					} else if(speed<(5*speed_co)) {
 						color = "#FF8000";
-					} else if(speed<(8*speed_ko)) {
+					} else if(speed<(8*speed_co)) {
 						color = "#FFC000";
-					} else if(speed<(11*speed_ko)) {
+					} else if(speed<(11*speed_co)) {
 						color = "#FFFF00";
-					} else if(speed<(14*speed_ko)) {
+					} else if(speed<(14*speed_co)) {
 						color = "#C0FF00";
-					} else if(speed<(17*speed_ko)) {
+					} else if(speed<(17*speed_co)) {
 						color = "#80FF00";
-					} else if(speed<(20*speed_ko)) {
+					} else if(speed<(20*speed_co)) {
 						color = "#40FF00";
-					} else if(speed<(25*speed_ko)) {
+					} else if(speed<(25*speed_co)) {
 						color = "#10FF00";
 					} else {
 						color = "#0000FF";
@@ -252,6 +270,51 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 					lats.push(polyline.getBounds().getNorth());
 					lons.push(polyline.getBounds().getWest());
 					lons.push(polyline.getBounds().getEast());
+				}
+			});
+		}
+		
+		function drawMultiColorPolyline(urlJsonData){
+			$.getJSON(urlJsonData, function (json) {
+				for (var j = 0; j < json.length-1; j++) {
+					line_points = [];
+					
+					var cost = 100000;
+					
+					for (var i = 0; i < json[j].length; i++) {
+						if (json[j][i].cost)
+							cost = parseFloat(json[j][i].cost);
+						if (json[j][i].lat)
+							line_points.push(L.latLng(parseFloat(json[j][i].lat), parseFloat(json[j][i].lon)));
+					}
+					
+					// Color of line dependung on Speed
+					var color;
+					var cost_co = 1;
+					if(cost<0.3*cost_co) {
+						color = "#00FF00";
+					} else if(cost<(0.35*cost_co)) {
+						color = "#40FF00";
+					} else if(cost<(0.4*cost_co)) {
+						color = "#80FF00";
+					} else if(cost<(0.5*cost_co)) {
+						color = "#C0FF00";
+					} else if(cost<(0.7*cost_co)) {
+						color = "#FFFF00";
+					} else if(cost<(0.9*cost_co)) {
+						color = "#FFC000";
+					} else if(cost<(1.2*cost_co)) {
+						color = "#FF8000";
+					} else if(cost<(1.7*cost_co)) {
+						color = "#FF4000";
+					} else if(cost<(2.2*cost_co)) {
+						color = "#FF0000";
+					} else {
+						color = "#000000";
+					}
+					
+					// create a red polyline from an array of LatLng points
+					var polyline = L.polyline(line_points, {color: color}).addTo(map);
 				}
 			});
 		}
@@ -319,6 +382,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
+			event.preventDefault();
 			// Remove all polylines
 			clearMap();
 			lats = [];
@@ -337,33 +401,59 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			var southWest = L.latLng(latSouth, lngWest);
 			var northEast = L.latLng(latNorth, lngEast);
 			map.fitBounds(L.latLngBounds(southWest, northEast));
-			event.preventDefault();
 		});
 		
-		$( "#showtopo" ).submit(function( event ) {
+		$( "#showedges_simple" ).submit(function( event ) {
 			// Remove all polylines
 			clearMap();
-			//lats = [];
-			//lons = [];
 			// Get Bound of current leaflet map:
 			var bounds = map.getBounds();
-			
 			// draw polyline for every edge
 			drawMultiPolyline( "api1/gettopo.php?getedges=getedges"
 				+"&start_lat="+bounds.getNorth()
 				+"&start_lon="+bounds.getWest()
 				+"&end_lat="+bounds.getSouth()
 				+"&end_lon="+bounds.getEast() );
-			// Polylines should be inside current bounds
-			/*var latSouth = Math.max.apply(Math, lats);
-			var latNorth = Math.min.apply(Math, lats);
-			var lngWest = Math.max.apply(Math, lons);
-			var lngEast = Math.min.apply(Math, lons);
-			var southWest = L.latLng(latSouth, lngWest);
-			var northEast = L.latLng(latNorth, lngEast);
-			map.fitBounds(L.latLngBounds(southWest, northEast)); */
+			// (Polylines should be inside current bounds)
 			// prevent reload
 			event.preventDefault();
+		});
+		
+		$( "#showedges_staticcost" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
+			// Get Bound of current leaflet map:
+			var bounds = map.getBounds();
+			// draw polyline for every edge
+			drawMultiColorPolyline( "api1/gettopo.php?getedges=getedges&cost=static"
+				+"&start_lat="+bounds.getNorth()
+				+"&start_lon="+bounds.getWest()
+				+"&end_lat="+bounds.getSouth()
+				+"&end_lon="+bounds.getEast() );
+			// (Polylines should be inside current bounds)
+			// prevent reload
+			event.preventDefault();
+		});
+		
+		$( "#showedges_dyncost" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
+			// Get Bound of current leaflet map:
+			var bounds = map.getBounds();
+			// draw polyline for every edge
+			drawMultiColorPolyline( "api1/gettopo.php?getedges=getedges&cost=dyn"
+				+"&start_lat="+bounds.getNorth()
+				+"&start_lon="+bounds.getWest()
+				+"&end_lat="+bounds.getSouth()
+				+"&end_lon="+bounds.getEast() );
+			// (Polylines should be inside current bounds)
+			// prevent reload
+			event.preventDefault();
+		});
+		
+		$( "#cleanmap_form" ).submit(function( event ) {
+			// Remove all polylines
+			clearMap();
 		});
 		
 		$("#routing_start_p").click(function() {
@@ -381,7 +471,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 	</script>
 <?php
-pg_close ( $pg );
+//pg_close ( $pgr );
 $my->close ();
 ?>
 </body>

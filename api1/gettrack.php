@@ -11,8 +11,8 @@ if ($my->connect_error)
 $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
-$pg = pg_connect ( $pg_connectstr );
-if(!$pg)
+$pgr = pg_connect ( $pgr_connectstr );
+if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
@@ -54,7 +54,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	$result->free();
 } else if(isset($_GET["gettrack"]) && $_GET["gettrack"]=="gettrack" && isset($_GET["track_id"])){
 	// Return point of track $_GET["track_id"]
-	$query = "SELECT lat, lon, alt, time, speed FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pg, $_GET["track_id"]) . "';";
+	$query = "SELECT lat, lon, alt, time, speed FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pgr, $_GET["track_id"]) . "';";
 	$result = pg_query ( $query );
 	if ( $result ) {
 		$data = array();
@@ -77,6 +77,6 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 }
 
 echo ($out);
-pg_close ( $pg );
+pg_close ( $pgr );
 $my->close ();
 ?>
