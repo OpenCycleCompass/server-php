@@ -382,6 +382,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 		
 		$( "#generate_route" ).submit(function( event ) {
+			event.preventDefault();
 			// Remove all polylines
 			clearMap();
 			lats = [];
@@ -400,7 +401,6 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 			var southWest = L.latLng(latSouth, lngWest);
 			var northEast = L.latLng(latNorth, lngEast);
 			map.fitBounds(L.latLngBounds(southWest, northEast));
-			event.preventDefault();
 		});
 		
 		$( "#showedges_simple" ).submit(function( event ) {

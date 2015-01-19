@@ -28,7 +28,7 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 	}
 	
 	// Return point of track $_GET["track_id"]
-	$query = "SELECT gid, ST_AsText(the_geom), cost FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
+	$query = "SELECT gid, ST_AsText(the_geom), mycost FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
 	$result = pg_query($query);
 	if($result) {
 		$data = array();
