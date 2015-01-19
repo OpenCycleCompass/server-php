@@ -41,6 +41,7 @@ $my->select_db ( $my_name );
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
+			<li><a href="#admin_pane" role="tab"><i class="fa fa-cogs"></i></a></li>
 			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
@@ -100,6 +101,25 @@ $my->select_db ( $my_name );
 				<form id="showedges_dyncost">
 					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
 				</form>
+			</div>
+			
+			<div class="sidebar-pane" id="admin_pane">
+				<h1>iBis Administration</h1>
+				<?php
+				
+				$auth_user = true;
+				
+				if($auth_user){
+					$admin_out = '
+					<h3>Alle Overlays entfernen</h3>
+					<form id="cleanmap_form">
+						<input type="text" value="User" id="user_user">
+						<input type="password" value="Passwort" id="user_pw">
+						<input type="submit" value="Anmelden">
+					</form>';
+				}
+				echo($admin_out);
+				?>
 			</div>
 			
 			<div class="sidebar-pane" id="cleanmap_pane">
