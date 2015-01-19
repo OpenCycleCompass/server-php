@@ -21,14 +21,24 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 	$end_lat = floatval($_GET["end_lat"]);
 	$end_lon = floatval($_GET["end_lon"]);
 	
-	if(isset($_GET["cost"])) {
-		$cost  = true;
-	} else {
-		$cost  = false;
-	}
-	
 	// Return point of track $_GET["track_id"]
-	$query = "SELECT gid, ST_AsText(the_geom), mycost FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
+	
+	if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
+		$query = "SELECT 
+			ways.gid, 
+			ST_AsText(ways.the_geom), 
+			classes.cost 
+		FROM 
+			ways 
+				JOIN classes 
+					ON ways.class_id = classes.id 
+		WHERE 
+			ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326)
+		LIMIT 
+			10000;";
+	} else {
+		$query = "SELECT gid, ST_AsText(the_geom) FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
+	}
 	$result = pg_query($query);
 	if($result) {
 		$data = array();
@@ -38,8 +48,9 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 			$gid = $row[0];
 			
 			$subdata = array();
-			if(isset($_GET["cost"]) && $_GET["cost"] == "static")
+			if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
 				$subdata[] = array("cost" => $row[2]);
+			}
 			$subdata[] = array("gid" => $gid);
 			
 			$geom = substr($row[1], 11, -1);

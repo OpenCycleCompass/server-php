@@ -10,7 +10,7 @@ if ($my->connect_error)
 $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
-$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+//$pgr = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 ?>
 <!doctype html>
 <html>
@@ -279,35 +279,35 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 				for (var j = 0; j < json.length-1; j++) {
 					line_points = [];
 					
-					var cost = json[j].cost;
+					var cost = 100000;
 					
 					for (var i = 0; i < json[j].length; i++) {
 						if (json[j][i].cost)
-							cost = json[j][i].cost;
+							cost = parseFloat(json[j][i].cost);
 						if (json[j][i].lat)
 							line_points.push(L.latLng(parseFloat(json[j][i].lat), parseFloat(json[j][i].lon)));
 					}
 					
 					// Color of line dependung on Speed
 					var color;
-					var cost_co = 10;
-					if(cost<2*cost_co) {
+					var cost_co = 1;
+					if(cost<0.3*cost_co) {
 						color = "#00FF00";
-					} else if(cost<(3*cost_co)) {
+					} else if(cost<(0.35*cost_co)) {
 						color = "#40FF00";
-					} else if(cost<(5*cost_co)) {
+					} else if(cost<(0.4*cost_co)) {
 						color = "#80FF00";
-					} else if(cost<(8*cost_co)) {
+					} else if(cost<(0.5*cost_co)) {
 						color = "#C0FF00";
-					} else if(cost<(11*cost_co)) {
+					} else if(cost<(0.7*cost_co)) {
 						color = "#FFFF00";
-					} else if(cost<(14*cost_co)) {
+					} else if(cost<(0.9*cost_co)) {
 						color = "#FFC000";
-					} else if(cost<(17*cost_co)) {
+					} else if(cost<(1.2*cost_co)) {
 						color = "#FF8000";
-					} else if(cost<(20*cost_co)) {
+					} else if(cost<(1.7*cost_co)) {
 						color = "#FF4000";
-					} else if(cost<(25*cost_co)) {
+					} else if(cost<(2.2*cost_co)) {
 						color = "#FF0000";
 					} else {
 						color = "#000000";
@@ -471,7 +471,7 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 		});
 	</script>
 <?php
-pg_close ( $pg );
+//pg_close ( $pgr );
 $my->close ();
 ?>
 </body>
