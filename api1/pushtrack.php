@@ -11,8 +11,8 @@ if ($my->connect_error)
 $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
-$pg = pg_connect ( $pg_connectstr );
-if(!$pg)
+$pgr = pg_connect ( $pgr_connectstr );
+if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( $_GET ['user_token'] ) && isset ( $_GET ['length'] ) && isset ( $_GET ['duration'] ) && isset ( $_GET ['name'] ) && isset ( $_GET ['comment'] ) && isset ( $_GET ['data'] )) {
@@ -127,6 +127,6 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 	) );
 }
 echo ($out);
-pg_close ( $pg );
+pg_close ( $pgr );
 $my->close ();
 ?>
