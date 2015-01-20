@@ -15,7 +15,15 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( $_GET ['user_token'] ) && isset ( $_GET ['length'] ) && isset ( $_GET ['duration'] ) && isset ( $_GET ['name'] ) && isset ( $_GET ['comment'] ) && isset ( $_GET ['data'] )) {
+if( isset($_GET["newtrack"])
+		&& ($_GET['newtrack'] == "newtrack")
+		&& isset($_GET['user_token'])
+		&& isset($_GET['length'])
+		&& isset($_GET['duration'])
+		&& isset($_GET['name'])
+		&& isset($_GET['comment'])
+		&& (isset($_GET['data']) || isset($_POST['data'])) )
+	{
 	// user_token passed by the app.
 	$user_token = $my->real_escape_string ( $_GET ['user_token'] );
 	if (verify_token ( $user_token, $my )) {
@@ -74,7 +82,11 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		    }*/
 
 		$nodes = 0;
-		$data_raw = $_GET ['data'];
+		if(isset($_POST['data'])) {
+			$data_raw = $_POST['data'];
+		} else {
+			$data_raw = $_GET['data'];
+		}
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
 			foreach ($data as $element) {
