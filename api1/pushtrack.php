@@ -22,8 +22,8 @@ if( isset($_GET["newtrack"])
 		&& isset($_GET['duration'])
 		&& isset($_GET['name'])
 		&& isset($_GET['comment'])
-		&& (isset($_GET['data']) || isset($_POST['data'])) )
-	{
+		&& (isset($_GET['data']) || isset($_POST['data'])) ) {
+	
 	// user_token passed by the app.
 	$user_token = $my->real_escape_string ( $_GET ['user_token'] );
 	if (verify_token ( $user_token, $my )) {
@@ -102,18 +102,19 @@ if( isset($_GET["newtrack"])
 						$spe = floatval($element["spe"]);
 					else 
 						$spe = "NULL";
-					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id)
-					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "')";
+					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom)
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lon."),4326))";
 					$result = pg_query ( $query );
 					if ( $result ) {
 						pg_free_result ( $result );
 						$nodes++;
 					}
+					// Effizenz? Evtl alle Querys sammeln und gemeinsam ausführen?
 				}
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "')" );
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `data_raw`) 
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $my->real_escape_string($_GET['data']) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
@@ -134,9 +135,11 @@ if( isset($_GET["newtrack"])
 		) );
 	}
 } else {
-	$out = json_encode ( array (
-			"error" => "Keine oder falsche Eingabe." 
-	) );
+	if(!isset($_POST["data"])) {
+		$out = json_encode(array("error" => "Keine oder falsche Eingabe. \"data\" fehlt"));
+	} else {
+		$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
+	}
 }
 echo ($out);
 pg_close ( $pgr );
