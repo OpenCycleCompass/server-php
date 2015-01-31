@@ -38,16 +38,21 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 	$end_id = $row[0];
 	//echo "End: ".$end_id;
 	
+	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
+	
 	// Generate route
-	$query = "SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) FROM pgr_dijkstra('
+	$query = "CREATE TEMP TABLE ".$temp_table." AS
+	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS the_geom, b.length FROM pgr_dijkstra('
 				SELECT gid AS id,
 					source::integer,
 					target::integer,
 					(length * c.cost) AS cost
 				FROM ways, classes c
 				WHERE class_id = c.id',
-			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);";
-			
+			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);
+	SELECT * FROM  ".$temp_table.";
+	";
+	
 	// Send $query via email to jufo2@mytfg.de for debugging
 	//error_log("pgRouting Query: " . $query, 1, "jufo2@mytfg.de");
 	
@@ -69,7 +74,7 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 				$point_a = explode(" ", $point);
 				if($point_a[0] && $point_a[1]) {
 					$id++;
-					$subdata[] = array("id" => $id, "lat" => $point_a[1],"lon" => $point_a[0]);
+					$subdata[] = array("id" => $id, "lat" => floatval($point_a[1]),"lon" => floatval($point_a[0]));
 				}
 			}
 			if(!empty($subdata)) {
@@ -100,8 +105,21 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 				$data_single = array_merge($data_single,$element);
 			}
 		}
-		$out = json_encode($data_single);
-		pg_free_result ( $result );
+		
+		$json_obj = array();
+		$json_obj["points"] = $data_single;
+		
+		// Calulate Distance:
+		$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
+		$result = pg_query($query);
+		if($result) {
+			$row = pg_fetch_assoc($result);
+			$json_obj["distance"] = floatval($row["distance"]);
+			$out = json_encode($json_obj);
+			pg_free_result($result);
+		} else {
+			$out = json_encode(array("error" => "Keine Route gefunden."));
+		}
 	} else {
 		$out = json_encode ( array (
 				"error" => "Keine Route gefunden."
