@@ -39,7 +39,6 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 	//echo "End: ".$end_id;
 	
 	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
-	
 	// Generate route
 	$query = "CREATE TEMP TABLE ".$temp_table." AS
 	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS the_geom, b.length FROM pgr_dijkstra('
@@ -50,7 +49,7 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 				FROM ways, classes c
 				WHERE class_id = c.id',
 			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);
-	SELECT * FROM  ".$temp_table.";
+	SELECT the_geom FROM  ".$temp_table.";
 	";
 	
 	// Send $query via email to jufo2@mytfg.de for debugging
@@ -62,12 +61,8 @@ if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["sta
 		$id = 0;
 		$row_cnt = 0;
 		$row_num = pg_num_rows($result);
-		while ($row = pg_fetch_row($result)) {
-			$node = $row[1];
-			$edge = $row[2];
-			$cost = $row[3];
-			
-			$geom = substr($row[4], 11, -1);
+		while ($row = pg_fetch_assoc($result)) {
+			$geom = substr($row["the_geom"], 11, -1);
 			$points = explode(",", $geom);
 			$subdata = array();
 			foreach($points as $point) {
