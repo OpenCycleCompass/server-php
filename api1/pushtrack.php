@@ -48,12 +48,12 @@ if( isset($_GET["newtrack"])
 		
 		// Public: Track is public availible (anonymous)
 		if(isset($_GET ['public']))
-			if($_GET ['public'] == "1")
+			if($_GET ['public'] == "true")
 				$public = 1;
 			else
 				$public = 0;
 		else
-			$public = 0;
+			$public = 1;
 		
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
@@ -90,7 +90,7 @@ if( isset($_GET["newtrack"])
 			}
 			
 			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `data_raw`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $my->real_escape_string($_GET['data']) . "')" );
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $my->real_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
