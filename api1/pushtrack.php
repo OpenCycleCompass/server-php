@@ -15,7 +15,15 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( $_GET ['user_token'] ) && isset ( $_GET ['length'] ) && isset ( $_GET ['duration'] ) && isset ( $_GET ['name'] ) && isset ( $_GET ['comment'] ) && isset ( $_GET ['data'] )) {
+if( isset($_GET["newtrack"])
+		&& ($_GET['newtrack'] == "newtrack")
+		&& isset($_GET['user_token'])
+		&& isset($_GET['length'])
+		&& isset($_GET['duration'])
+		&& isset($_GET['name'])
+		&& isset($_GET['comment'])
+		&& (isset($_GET['data']) || isset($_POST['data'])) ) {
+	
 	// user_token passed by the app.
 	$user_token = $my->real_escape_string ( $_GET ['user_token'] );
 	if (verify_token ( $user_token, $my )) {
@@ -40,41 +48,21 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		
 		// Public: Track is public availible (anonymous)
 		if(isset($_GET ['public']))
-			if($_GET ['public'] == "1")
+			if($_GET ['public'] == "true")
 				$public = 1;
 			else
 				$public = 0;
 		else
-			$public = 0;
+			$public = 1;
 		
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
-
-	/*
-	 * sample json data:
-	{
-		"1": {
-			"lat": 1.515651,
-			"lon": 2.515651,
-			"alt": 3.515651,
-			"time": 66684584686
-			},
-		"2": {
-			"lat": 7.515651,
-				"lon": 8.515651,
-				"alt": 9.515651,
-				"time": 141445846864
-			},
-		"3": {
-		    "lat": 4.515651,
-		    "lon": 5.515651,
-		    "alt": 6.515651,
-		    "time": 1515458468
-		    }
-		    }*/
-
 		$nodes = 0;
-		$data_raw = $_GET ['data'];
+		if(isset($_POST['data'])) {
+			$data_raw = $_POST['data'];
+		} else {
+			$data_raw = $_GET['data'];
+		}
 		$data = json_decode($data_raw, true, 3);
 		if(count($data)>=1){
 			foreach ($data as $element) {
@@ -90,18 +78,19 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 						$spe = floatval($element["spe"]);
 					else 
 						$spe = "NULL";
-					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id)
-					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "')";
+					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom)
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lon."),4326))";
 					$result = pg_query ( $query );
 					if ( $result ) {
 						pg_free_result ( $result );
 						$nodes++;
 					}
+					// Effizenz? Evtl alle Querys sammeln und gemeinsam ausführen?
 				}
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "')" );
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `data_raw`) 
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $my->real_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
@@ -122,9 +111,11 @@ if (isset ( $_GET ["newtrack"] ) && $_GET ['newtrack'] == "newtrack" && isset ( 
 		) );
 	}
 } else {
-	$out = json_encode ( array (
-			"error" => "Keine oder falsche Eingabe." 
-	) );
+	if(!isset($_POST["data"])) {
+		$out = json_encode(array("error" => "Keine oder falsche Eingabe. \"data\" fehlt"));
+	} else {
+		$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
+	}
 }
 echo ($out);
 pg_close ( $pgr );

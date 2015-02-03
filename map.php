@@ -198,16 +198,29 @@ $my->select_db ( $my_name );
 			// Create array of lat,lon points
 			var line_points = [];
 			$.getJSON(urlJsonData, function (json) {
-				for (var i = 0; i < json.length; i++) {
-					line_points.push(L.latLng(parseFloat(json[i].lat), parseFloat(json[i].lon)));
+				if(json.points) {
+					for (var i = 0; i < json.points.length; i++) {
+						line_points.push(L.latLng(parseFloat(json.points[i].lat), parseFloat(json.points[i].lon)));
+					}
+					// create a red polyline from an array of LatLng points
+					var polyline = L.polyline(line_points, {color: 'red'}).addTo(map);
+					// add lat and lon to array:
+					lats.push(polyline.getBounds().getSouth());
+					lats.push(polyline.getBounds().getNorth());
+					lons.push(polyline.getBounds().getWest());
+					lons.push(polyline.getBounds().getEast());
+				} else {
+					alert("Keine Punkte in Routendaten enthalten.");
 				}
-				// create a red polyline from an array of LatLng points
-				var polyline = L.polyline(line_points, {color: 'red'}).addTo(map);
-				// add lat and lon to array:
-				lats.push(polyline.getBounds().getSouth());
-				lats.push(polyline.getBounds().getNorth());
-				lons.push(polyline.getBounds().getWest());
-				lons.push(polyline.getBounds().getEast());
+				if(json.distance) {
+					if(json.distance>1000) {
+						// Display distance in km with 2 decimal places
+						alert("Länge der Route beträgt: "+Math.round(json.distance/10)/100+" Kilometer.");
+					} else {
+						// Display distance in m without any decimal places
+						alert("Länge der Route beträgt: "+Math.round(json.distance)+" Meter.");
+					}
+				}
 			});
 		}
 			
