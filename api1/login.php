@@ -21,7 +21,7 @@ if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (is
 		$pw = $my->real_escape_string($_GET["password"]);
 	}
 	$success = false;
-	$query = "SELECT `password` FROM `admin_users` WHERE `name` = '".$_GET["user"]."';";
+	$query = "SELECT `password` FROM `admin_users` WHERE `name` = '".$my->real_escape_string($_GET["user"])."';";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		// possible multiple users with same name but different password -> multiple rows in MySQL db
