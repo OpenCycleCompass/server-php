@@ -2,7 +2,7 @@
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 // Load config (for MySQL db)
-include('api1/config.php');
+include('config.php');
 // Connect to MySQL database
 $err_level = error_reporting(0);
 $my = new mysqli($my_host, $my_user, $my_pass);
@@ -20,14 +20,13 @@ if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (is
 	} else {
 		$pw = $my->real_escape_string($_GET["password"]);
 	}
-	$query = "SELECT `password` FROM `admin_users` WHERE `name` = '".$pw."';";
-	$result = $my->query($query);
 	$success = false;
+	$query = "SELECT `password` FROM `admin_users` WHERE `name` = '".$_GET["user"]."';";
+	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		// possible multiple users with same name but different password -> multiple rows in MySQL db
 		while($row = $result->fetch_assoc()){
-			
-			if(password_verify($_GET["password"], $row["password"])) {
+			if(password_verify($pw, $row["password"])) {
 				$success = true;
 			}
 		}
