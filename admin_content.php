@@ -21,7 +21,7 @@ if(isset($_GET["content_get"])) {
 	if($_GET["content_get"] == "login") {
 		$out = json_encode(array("content" => '
 		<h3>Bitte zuerst Anmelden:</h3>
-		<form id="cleanmap_form">
+		<form id="login_form">
 			<input type="text" value="User" id="user_user">
 			<br />
 			<input type="password" value="Passwort" id="user_pw">
@@ -45,7 +45,7 @@ if(isset($_GET["content_get"])) {
 			}
 			$out = json_encode(array("content" => '
 			<h1>iBis Tracks Löschen</h1>
-			<form id="admin_delete_form">
+			<form id="admin_delete_form" onsubmit="deleteTracks()">
 				<label for="admin_delete_select">Track(s) löschen</label>
 				<br />
 				<select id="admin_delete_select" multiple="multiple" size="35" style="overflow: hidden; width: 100%;">
