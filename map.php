@@ -11,6 +11,8 @@ $my->set_charset ( 'utf8' );
 $my->select_db ( $my_name );
 
 //$pgr = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+
+session_start();
 ?>
 <!doctype html>
 <html>
@@ -41,6 +43,7 @@ $my->select_db ( $my_name );
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
+			<li><a href="#admin_pane" role="tab"><i class="fa fa-cogs"></i></a></li>
 			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
@@ -50,7 +53,7 @@ $my->select_db ( $my_name );
 				<form id="show_track">
 					<label for="track_select">Track(s) anzeigen</label>
 					<br />
-					<select id="track_select" multiple="multiple" size="25" style="overflow: hidden;">
+					<select id="track_select" multiple="multiple" size="25" style="overflow: hidden; width: 100%;">
 
 					</select>
 					<br />
@@ -102,6 +105,13 @@ $my->select_db ( $my_name );
 				</form>
 			</div>
 			
+			<div class="sidebar-pane" id="admin_pane">
+				<h1>iBis Administration</h1>
+				<div id="admin_content">
+				<!-- dynamic content with JS -->
+				</div>
+			</div>
+			
 			<div class="sidebar-pane" id="cleanmap_pane">
 				<h1>iBis Overlays</h1>
 				<h3>Alle Overlays entfernen</h3>
@@ -120,8 +130,87 @@ $my->select_db ( $my_name );
 	<script type="text/javascript">
 		$.ajaxSetup({'async': false});
 
-		$( document ).ready( setTrackSelectOptions($("#track_select_num").val()));
+		$( document ).ready( function() {
+			setTrackSelectOptions($("#track_select_num").val())
+			
+			// admin pane:
+			$.getJSON("api1/login.php?status", function(json) {
+				if(json.status=="bad") {
+					adminContentLogin();
+				} else {
+					adminContentDelete();
+				}
+			});
+			
+		});
 
+		function adminContentLogin() {
+			$.getJSON("admin_content.php?content_get=login", function(json) {
+				if(json.content) {
+					$("#admin_content").html(json.content);
+				} else {
+					alert("Cannot get admin content");
+				}
+			});
+		}
+		function adminContentDelete() {
+			$.getJSON("admin_content.php?content_get=delete", function(json) {
+				if(json.content) {
+					$("#admin_content").html(json.content);
+				} else {
+					alert("Cannot get admin content");
+				}
+			});
+		}
+		
+		function deleteTracks() {
+			var url = "api1/deletetrack.php?deletetrack&track_ids=";
+			$('#admin_delete_select option:selected').each(function() {
+				url += $(this).val() + ";";
+			});
+			
+			$.getJSON(url, function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					alert("Erfolg: "+json.success);
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+				
+				// refresh admin pane:
+				adminContentDelete();
+			});
+		}
+		
+		function loginUser() {
+			var url = "api1/login.php?login&user="+$("#login_user").val()+"&password="+$("#login_pw").val();
+			$.getJSON(url, function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					//alert("Erfolg: "+json.success);
+					// refresh admin pane:
+					adminContentDelete();
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+			});
+		}
+		
+		function logoutUser() {
+			$.getJSON("api1/login.php?signout", function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					// refresh admin pane:
+					adminContentLogin();
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+			});
+		}
+		
 		$("#track_select_num_form").submit( function () {
 			setTrackSelectOptions($("#track_select_num").val());
 		});
@@ -482,6 +571,7 @@ $my->select_db ( $my_name );
 				$('#routing_end_id').replaceWith("<p id=\"routing_end_id\">(id=" + json.id + ")</p>");
 			});
 		});
+		
 	</script>
 <?php
 //pg_close ( $pgr );
