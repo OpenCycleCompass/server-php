@@ -169,12 +169,42 @@ session_start();
 				url += $(this).val() + ";";
 			});
 			
-			url += 
 			$.getJSON(url, function(json) {
 				if(json.error){
 					alert("Fehler: "+json.error);
 				} else if(json.success) {
 					alert("Erfolg: "+json.success);
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+				
+				// refresh admin pane:
+				adminContentDelete();
+			});
+		}
+		
+		function loginUser() {
+			var url = "api1/login.php?login&user="+$("#login_user").val()+"&password="+$("#login_pw").val();
+			$.getJSON(url, function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					//alert("Erfolg: "+json.success);
+					// refresh admin pane:
+					adminContentDelete();
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+			});
+		}
+		
+		function logoutUser() {
+			$.getJSON("api1/login.php?signout", function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					// refresh admin pane:
+					adminContentLogin();
 				} else {
 					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
 				}

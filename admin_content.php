@@ -21,10 +21,14 @@ if(isset($_GET["content_get"])) {
 	if($_GET["content_get"] == "login") {
 		$out = json_encode(array("content" => '
 		<h3>Bitte zuerst Anmelden:</h3>
-		<form id="login_form">
-			<input type="text" value="User" id="user_user">
+		<form id="login_form" onsubmit="loginUser()">
+			<label for="user_user">Admin-Benutzername:</label>
 			<br />
-			<input type="password" value="Passwort" id="user_pw">
+			<input type="text" value="" id="login_user">
+			<br />
+			<label for="user_pw">Passwort</label>
+			<br />
+			<input type="password" value="" id="login_pw">
 			<br />
 			<input type="submit" value="Anmelden">
 			<br />
@@ -54,6 +58,12 @@ if(isset($_GET["content_get"])) {
 				<br />
 				<input type="submit" value="Tracks Löschen">
 				<br />
+			</form>
+			<br />
+			<br />
+			<hr />
+			<form id="logout_form" onsubmit="logoutUser()">
+				<input type="submit" value="Abmelden">
 			</form>
 			<br />'));
 		} else {
