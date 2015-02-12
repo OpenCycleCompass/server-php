@@ -55,6 +55,8 @@ if( isset($_GET["newtrack"])
 		else
 			$public = 1;
 		
+		$track_string = "";
+		
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
 		$nodes = 0;
@@ -84,13 +86,18 @@ if( isset($_GET["newtrack"])
 					if ( $result ) {
 						pg_free_result ( $result );
 						$nodes++;
+						$track_string .= $time.$lat.$lon;
 					}
 					// Effizenz? Evtl alle Querys sammeln und gemeinsam ausführen?
 				}
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `data_raw`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $my->real_escape_string($data_raw) . "')" );
+			// Generate hash of track: $track_string
+			
+			$hash = sha1($track_string);
+			
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`) 
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
