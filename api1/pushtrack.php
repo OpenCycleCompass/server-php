@@ -72,14 +72,22 @@ if( isset($_GET["newtrack"])
 					$time = intval($element["tst"]); 	// UNIX timestamp ist ganzzahlig
 					$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
 					$lon = floatval($element["lon"]);
-					if(isset($element["alt"]))
+					if(isset($element["alt"])) {
 						$alt = floatval($element["alt"]);
-					else 
+					} else {
 						$alt = "NULL";
-					if(isset($element["spe"]))
+					}
+					if(isset($element["spe"])) {
 						$spe = floatval($element["spe"]);
-					else 
+					} else {
 						$spe = "NULL";
+					}
+					// Länge (in Metern) des Tracks
+					if($element["acc"]) {
+						$acc = floatval($element["acc"]);
+					} else {
+						$acc = 0;
+					}
 					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom)
 					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lat."),4326))";
 					$result = pg_query ( $query );
@@ -96,8 +104,8 @@ if( isset($_GET["newtrack"])
 			
 			$hash = sha1($track_string);
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`) 
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "')" );
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`, `acc`)
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "', '".$acc."')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
