@@ -81,7 +81,7 @@ if( isset($_GET["newtrack"])
 					else 
 						$spe = "NULL";
 					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom)
-					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lon."),4326))";
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lat."),4326))";
 					$result = pg_query ( $query );
 					if ( $result ) {
 						pg_free_result ( $result );
