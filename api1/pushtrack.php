@@ -88,8 +88,8 @@ if( isset($_GET["newtrack"])
 					} else {
 						$acc = 0;
 					}
-					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom)
-					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lat."),4326))";
+					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom, acc)
+					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lat."),4326), '".$acc."')";
 					$result = pg_query ( $query );
 					if ( $result ) {
 						pg_free_result ( $result );
@@ -104,8 +104,8 @@ if( isset($_GET["newtrack"])
 			
 			$hash = sha1($track_string);
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`, `acc`)
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "', '".$acc."')" );
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`)
+			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
