@@ -69,7 +69,7 @@ if( isset($_GET["newtrack"])
 		if(count($data)>=1){
 			foreach ($data as $element) {
 				if(isset($element["lat"]) && isset($element["lon"]) && isset($element["tst"])){
-					$time = intval($element["tst"]); 	// UNIX timestamp ist ganzzahlig
+					$time = floatval($element["tst"]); 	// UNIX timestamp ist Festkommazahl mit 3 Nachlommastellen
 					$lat = floatval($element["lat"]); 	// lat, lon und alt sind Gleitkommazahlen
 					$lon = floatval($element["lon"]);
 					if(isset($element["alt"])) {
