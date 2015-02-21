@@ -23,12 +23,29 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	} else {
 		$start_num = "0";
 	}
-	$query = "SELECT `name`,`track_id`,`created`,`nodes` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",25;";
+	$query = "SELECT `name`,`track_id`,`created`,`nodes`,`city`,`city_district` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC LIMIT " . $start_num . ",25;";
 	$result = $my->query($query);
 	if($result->num_rows >= 1){
 		$data = array();
 		while($row = $result->fetch_array()){
-			$data[] = array("name" => $row["name"] . " (" . date("d.m. ~H", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)", "track_id" => $row["track_id"]);
+			if($row["city"]!=NULL && $row["city_district"]!=NULL) {
+				// city_district can ba like "Aachen-Mitte" or "Innenstadt"
+				if(stripos($row["city_district"], $row["city"])===false) {
+					// city_district does not contain name of city
+					$city = "/".$row["city"]."(".$row["city_district"].")";
+				}
+				else {
+					// city_district contains name of city
+					$city = "/".$row["city_district"];
+				}
+			}
+			else if($row["city"]!=NULL) {
+					$city = "/".$row["city"];
+			}
+			else {
+				$city = "";
+			}
+			$data[] = array("name" => $row["name"] . $city . " (" . date("d.m. ~H", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)", "track_id" => $row["track_id"]);
 		}
 		$out = json_encode($data);
 	} else {
