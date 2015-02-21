@@ -15,12 +15,40 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"])){
+function getCoordByAddr($str) {
+	$httpsettings = stream_context_create(array("user_agent" => "iBis Bike Info and Routing"));
+	$raw = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&polygon=0&addressdetails=0&limit=1&q=".str_replace(" ", "+", $str), false, $httpsettings);
+	$json = json_decode($raw, true);
+	if(isset($json[0]["lat"]) && isset($json[0]["lon"])){
+		$lat = floatval($json[0]["lat"]);
+		$lon = floatval($json[0]["lon"]);
+		return array("lon" => $lon, "lat" => $lat);
+	} else {
+		return array("error" => true, "json" => $json);
+	}
+}
+
+if( isset($_GET["getroute"]) 
+	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]))) 
+	|| (isset($_GET["start"]) && isset($_GET["start"])) ) ) {
 	// return to route as arrays of LatLngs
-	$start_lat = floatval($_GET["start_lat"]);
-	$start_lon = floatval($_GET["start_lon"]);
-	$end_lat = floatval($_GET["end_lat"]);
-	$end_lon = floatval($_GET["end_lon"]);
+	
+	if(isset($_GET["start_lat"]) && isset($_GET["start_lon"])) {
+		$start_lat = floatval($_GET["start_lat"]);
+		$start_lon = floatval($_GET["start_lon"]);
+		$end_lat = floatval($_GET["end_lat"]);
+		$end_lon = floatval($_GET["end_lon"]);
+	} else {
+		$start = getCoordByAddr($_GET["start"]);
+		$end = getCoordByAddr($_GET["end"]);
+		if(isset($start["error"]) || isset($end["error"])) {
+			die(json_encode(array("error" => "End- oder Start-Adresse nicht gefunden.", "addinfo_start" => $start, "addinfo_end" => $end)));
+		}
+		$start_lat = $start["lat"];
+		$start_lon = $start["lon"];
+		$end_lat = $end["lat"];
+		$end_lon = $end["lon"];
+	}
 	
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
