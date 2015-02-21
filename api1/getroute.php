@@ -3,6 +3,7 @@ header ( 'Content-Type: text/html; charset=utf-8' );
 date_default_timezone_set ( 'Europe/Berlin' );
 include ('config.php');
 include ('functions.php');
+include("../classes/geocoding.class.php");
 $err_level = error_reporting ( 0 );
 $my = new mysqli ( $my_host, $my_user, $my_pass );
 error_reporting ( $err_level );
@@ -15,19 +16,7 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-function getCoordByAddr($str) {
-	$httpsettings = stream_context_create(array("ssl" => array("verify_peer"=>false,"verify_peer_name"=>false), "https" => array("user_agent" => "iBis Bike Info and Routing")));
-	$url = 'https://localhost/nominatim/search.php?format=json&polygon=0&addressdetails=0&limit=1&q='.str_replace(" ", "+", $str);
-	$raw = file_get_contents($url, false, $httpsettings);
-	$json = json_decode($raw, true);
-	if(isset($json[0]["lat"]) && isset($json[0]["lon"])){
-		$lat = floatval($json[0]["lat"]);
-		$lon = floatval($json[0]["lon"]);
-		return array("lon" => $lon, "lat" => $lat);
-	} else {
-		return array("error" => true, "json" => $json);
-	}
-}
+$geocoding = new Geocoding();
 
 if( isset($_GET["getroute"]) 
 	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]))) 
@@ -40,8 +29,8 @@ if( isset($_GET["getroute"])
 		$end_lat = floatval($_GET["end_lat"]);
 		$end_lon = floatval($_GET["end_lon"]);
 	} else {
-		$start = getCoordByAddr($_GET["start"]);
-		$end = getCoordByAddr($_GET["end"]);
+		$start = $geocoding->getCoordByAddr($_GET["start"]);
+		$end = $geocoding->getCoordByAddr($_GET["end"]);
 		if(isset($start["error"]) || isset($end["error"])) {
 			die(json_encode(array("error" => "End- oder Start-Adresse nicht gefunden.", "addinfo_start" => $start, "addinfo_end" => $end)));
 		}
