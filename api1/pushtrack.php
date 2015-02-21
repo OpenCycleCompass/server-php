@@ -3,6 +3,7 @@ header ( 'Content-Type: text/html; charset=utf-8' );
 date_default_timezone_set ( 'Europe/Berlin' );
 include ('config.php');
 include ('functions.php');
+include("../classes/geocoding.class.php");
 $err_level = error_reporting ( 0 );
 $my = new mysqli ( $my_host, $my_user, $my_pass );
 error_reporting ( $err_level );
@@ -60,6 +61,7 @@ if( isset($_GET["newtrack"])
 		// data: json-encoded user track
 		// array of (lat, lon, alt, time, speed, additional-info (not used so far))
 		$nodes = 0;
+		$first = true;
 		if(isset($_POST['data'])) {
 			$data_raw = $_POST['data'];
 		} else {
@@ -88,6 +90,11 @@ if( isset($_GET["newtrack"])
 					} else {
 						$acc = 0;
 					}
+					if($first) {
+						$first = false;
+						$first_lat = $lat;
+						$first_lon = $lon;
+					}
 					$query = "INSERT INTO rawdata_server_php (lat, lon, alt, time, speed, track_id, the_geom, acc)
 					VALUES (" . $lat . ",  " . $lon . ",  " . $alt . ", " . $time . ", " . $spe . ", '" . $track_id . "', ST_SetSRID(ST_MakePoint(".$lon.",".$lat."),4326), '".$acc."')";
 					$result = pg_query ( $query );
@@ -104,8 +111,30 @@ if( isset($_GET["newtrack"])
 			
 			$hash = sha1($track_string);
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` (`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, `comment`, `public`, `hash`, `data_raw`)
-			VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "',  '" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', '" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($data_raw) . "')" );
+			$city = NULL;
+			$city_district = NULL;
+			$geocoding = new Geocoding();
+			$geocoding_city = $geocoding->getCityByCoord($first_lat, $first_lon);
+			if(isset($geocoding_city["city"]) && isset($geocoding_city["city"])) {
+				$city = $geocoding_city["city"];
+				$city_district = $geocoding_city["city_district"];
+			}
+			else if(isset($geocoding_city["city"])) {
+				$city = $geocoding_city["city"];
+				$city_district = NULL;
+			}
+			else {
+				$city = NULL;
+				$city_district = NULL;
+			}
+			
+			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` "
+					."(`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, "
+						."`comment`, `public`, `hash`, `city`, `city_district`, `data_raw`) "
+					."VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "', "
+						."'" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', "
+						."'" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($city) . "', "
+						."'" . $my->real_escape_string($city_district) . "', '" . $my->real_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 			
 			// Return/echo token with created and expiry timestamp as json
