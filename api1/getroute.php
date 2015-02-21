@@ -15,12 +15,31 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if(isset($_GET["getroute"]) && $_GET["getroute"]=="getroute" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"])){
+function getCoordByAddr($str) {
+	$lon = 0;
+	$lat = 0;
+	// TODO
+	return array("lon" => $lon, "lat" => $lat);
+}
+
+if( isset($_GET["getroute"]) 
+	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]))) 
+	|| (isset($_GET["start"]) && isset($_GET["start"])) ) ) {
 	// return to route as arrays of LatLngs
-	$start_lat = floatval($_GET["start_lat"]);
-	$start_lon = floatval($_GET["start_lon"]);
-	$end_lat = floatval($_GET["end_lat"]);
-	$end_lon = floatval($_GET["end_lon"]);
+	
+	if(isset($_GET["start_lat"]) && isset($_GET["start_lon"])) {
+		$start_lat = floatval($_GET["start_lat"]);
+		$start_lon = floatval($_GET["start_lon"]);
+		$end_lat = floatval($_GET["end_lat"]);
+		$end_lon = floatval($_GET["end_lon"]);
+	} else {
+		$start = getCoordByAddr($_GET["start"]);
+		$end = getCoordByAddr($_GET["end"]);
+		$start_lat = $start["lat"];
+		$start_lon = $start["lon"];
+		$end_lat = $end["lat"];
+		$end_lon = $end["lon"];
+	}
 	
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
