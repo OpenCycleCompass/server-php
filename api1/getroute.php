@@ -87,7 +87,7 @@ if( isset($_GET["getroute"])
 	$result = pg_query ( $query );
 	if ( $result ) {
 		$data = array();
-		$id = 0;
+		//$id = 0;
 		$row_cnt = 0;
 		$row_num = pg_num_rows($result);
 		while ($row = pg_fetch_assoc($result)) {
@@ -97,8 +97,10 @@ if( isset($_GET["getroute"])
 			foreach($points as $point) {
 				$point_a = explode(" ", $point);
 				if($point_a[0] && $point_a[1]) {
-					$id++;
-					$subdata[] = array("id" => $id, "lat" => floatval($point_a[1]),"lon" => floatval($point_a[0]));
+					//$id++;
+					$subdata[] = array(//"old_id" => $id,
+										"lat" => floatval($point_a[1]),
+										"lon" => floatval($point_a[0]));
 				}
 			}
 			if(!empty($subdata)) {
@@ -130,8 +132,17 @@ if( isset($_GET["getroute"])
 			}
 		}
 		
+		$new_id = 0;
+		$data_single_id = array();
+		foreach($data_single as $data_single_node) {
+			$data_single_id[$new_id] = $data_single_node;
+			$data_single_id[$new_id]["id"] = $new_id;
+			$new_id++;
+		}
+
 		$json_obj = array();
-		$json_obj["points"] = $data_single;
+		$json_obj["points"] = $data_single_id;
+		$json_obj["numpoints"] = $new_id;
 		
 		// Calulate Distance:
 		$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
