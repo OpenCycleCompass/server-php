@@ -16,10 +16,16 @@ if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 function getCoordByAddr($str) {
-	$lon = 0;
-	$lat = 0;
-	// TODO
-	return array("lon" => $lon, "lat" => $lat);
+	$httpsettings = stream_context_create(array("user_agent" => "iBis Bike Info and Routing"));
+	$raw = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&polygon=0&addressdetails=0&limit=1&q=".str_replace(" ", "+", $str), false, $httpsettings);
+	$json = json_decode($raw, true);
+	if(isset($json[0]["lat"]) && isset($json[0]["lon"])){
+		$lat = floatval($json[0]["lat"]);
+		$lon = floatval($json[0]["lon"]);
+		return array("lon" => $lon, "lat" => $lat);
+	} else {
+		return array("error" => true, "json" => $json);
+	}
 }
 
 if( isset($_GET["getroute"]) 
@@ -35,6 +41,9 @@ if( isset($_GET["getroute"])
 	} else {
 		$start = getCoordByAddr($_GET["start"]);
 		$end = getCoordByAddr($_GET["end"]);
+		if(isset($start["error"]) || isset($end["error"])) {
+			die(json_encode(array("error" => "End- oder Start-Adresse nicht gefunden.", "addinfo_start" => $start, "addinfo_end" => $end)));
+		}
 		$start_lat = $start["lat"];
 		$start_lon = $start["lon"];
 		$end_lat = $end["lat"];
