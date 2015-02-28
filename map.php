@@ -24,6 +24,7 @@ session_start();
 <link rel="stylesheet"
 	href="leaflet/leaflet.css" />
 <link rel="stylesheet" href="leaflet-sidebar-v2/leaflet-sidebar.min.css" />
+<link rel="stylesheet" href="leaflet-contextmenu/leaflet.contextmenu.css" />
 <style>
 	body {
 		padding: 0;
@@ -41,7 +42,6 @@ session_start();
 		<ul class="sidebar-tabs" role="tablist">
 			<li><a href="#gettrack_pane" role="tab"><i class="fa fa-map-marker"></i></a></li>
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
-			<li><a href="#routing_pane" role="tab"><i class="fa fa-bicycle"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
 			<li><a href="#admin_pane" role="tab"><i class="fa fa-cogs"></i></a></li>
 			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
@@ -71,21 +71,30 @@ session_start();
 			</div>
 			
 			<div class="sidebar-pane" id="routing_pane">
-				<h1>iBis Routing Preview</h1>
-				<p>Zum Auswählen des Start und Ziel-Punktes in die Karte klicken!</p>
+				<h1>iBis Routing</h1>
+				<p>Zum Auswählen des Start und Ziel-Punktes in der Karte mittels Rechts-Klick den Start- und Ziel-Punkt festlegen!</p>
 				<form id="generate_route">
 				 <table>
-					<tr><td><p id="routing_start_p">Von</p></td></tr>
-					<tr><td><label for="start_lat">Breite:</label><input type="text" name="start_lat" id="start_lat"></td></tr>
-					<tr><td><label for="start_lon">Länge:</label><input type="text" name="start_lon" id="start_lon"></td></tr>
-					<tr><td><p id="routing_start_id">(id=?)</p></td></tr>
-					<tr><td><p id="routing_end_p">Nach</p></td></tr>
-					<tr><td><label for="end_lat">Breite:</label><input type="text" name="end_lat" id="end_lat"></td></tr>
-					<tr><td><label for="end_lon">Länge:</label><input type="text" name="end_lon" id="end_lon"></td></tr>
-					<tr><td><p id="routing_end_id">(id=?)</p></td></tr>
-					<tr><td><input type="submit" value="Route generieren"></td></tr>
+					<tr><td colspan="2"><p id="routing_start_p">Von</p></td></tr>
+					<tr><td><label for="start_lat">Breite:</label></td><td><input type="text" name="start_lat" id="start_lat"></td></tr>
+					<tr><td><label for="start_lon">Länge:</label></td><td><input type="text" name="start_lon" id="start_lon"></td></tr>
+					<tr><td colspan="2"><p id="routing_end_p">Nach</p></td></tr>
+					<tr><td><label for="end_lat">Breite:</label></td><td><input type="text" name="end_lat" id="end_lat"></td></tr>
+					<tr><td><label for="end_lon">Länge:</label></td><td><input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td>&nbsp;</td><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
+				<hr />
+				<h3>Oder mittels Adresseingabe:</h3>
+				<form id="generate_route_2">
+				 <table>
+					<tr><td><label for="start">Von</label></td><td><input type="text" name="start" id="start"></td></tr>
+					<tr><td><label for="end">Nach</label></td><td><input type="text" name="end" id="end"></td></tr>
+					<tr><td>&nbsp;</td><td><input type="submit" value="Route generieren"></td></tr>
+				 </table>
+				</form>
+				<hr />
+				<p><b>Info:</b> Die Routenberechnung ist derzeit nur in den Regierungsbezirgen Arnsberg, Düsseldorf und Köln möglich.</p>
 			</div>
 			
 			<div class="sidebar-pane" id="showtopo_pane">
@@ -127,6 +136,7 @@ session_start();
 	<script type="text/javascript" src="jquery/jquery-2.1.3.min.js"></script>
 	<script type="text/javascript" src="leaflet/leaflet.js"></script>
 	<script type="text/javascript" src="leaflet-sidebar-v2/leaflet-sidebar.min.js"></script>
+	<script type="text/javascript" src="leaflet-contextmenu/leaflet.contextmenu.js"></script>
 	<script type="text/javascript">
 		$.ajaxSetup({'async': false});
 
@@ -240,22 +250,47 @@ session_start();
 
 		}
 
+		// extend the default marker class (custon icon)
+		var StartIcon = L.Icon.Default.extend({
+		options: {
+				//iconUrl: 'leaflet/marker-start.png'
+		}
+		});
+		var startIcon = new StartIcon();
+
+		var DestIcon = L.Icon.Default.extend({
+		options: {
+				iconUrl: 'leaflet/images/dest-Pin-2x.png'
+		}
+		});
+		var destIcon = new DestIcon();
+
+		function setStart(e) {
+			$("#start_lat").val(e.latlng.lat);
+			$("#start_lon").val(e.latlng.lng);
+			startMark.setLatLng(e.latlng).bindPopup("Start (" + e.latlng.toString() + ")").update();
+			/*popup_start
+				.setLatLng(e.latlng)
+				.setContent("Start at " + e.latlng.toString())
+				.openOn(map);*/
+		}
+
+		function setDest(e) {
+			$("#end_lat").val(e.latlng.lat);
+			$("#end_lon").val(e.latlng.lng);
+			destMark.setLatLng(e.latlng).bindPopup("Ziel (" + e.latlng.toString() + ")").update();
+			/*popup_end
+				.setLatLng(e.latlng)
+				.setContent("End at " + e.latlng.toString())
+				.openOn(map);*/
+		}
+
 		function onMapClick(e) {
 			if(clickTyp == 0){
-				$("#start_lat").val(e.latlng.lat);
-				$("#start_lon").val(e.latlng.lng);
-				popup_start
-					.setLatLng(e.latlng)
-					.setContent("Start at " + e.latlng.toString())
-					.openOn(map);
+				setStart(e);
 				clickTyp = clickTyp+1;
 			} else if(clickTyp == 1){
-				$("#end_lat").val(e.latlng.lat);
-				$("#end_lon").val(e.latlng.lng);
-				popup_end
-					.setLatLng(e.latlng)
-					.setContent("End at " + e.latlng.toString())
-					.openOn(map);
+				setDest(e);
 				clickTyp = clickTyp+1;
 			} else if(clickTyp >= 2){
 				clickTyp = 0;
@@ -432,8 +467,21 @@ session_start();
 				}
 			}
 		}
-		
-		var map = L.map('map').setView([50, 7], 7);
+
+		var map = L.map('map', {
+				contextmenu: true,
+				contextmenuWidth: 120,
+				contextmenuItems: [{
+					text: 'Startpunkt setzen',
+					//icon: 'images/zoom-in.png',
+					callback: setStart
+				}, {
+					text: 'Ziel setzen',
+					callback: setDest
+				}]
+			});
+
+		map.setView([50, 7], 7);
 
 		// http://{s}.tile.thunderforest.com/cycle (OpenCycleMap) ist leider nicht über https verfügbar
 		// -> leider MixedContent 
@@ -455,6 +503,9 @@ session_start();
 
 		var lats = [];
 		var lons = [];
+
+		var startMark = L.marker([0, 0], {icon: startIcon}).addTo(map);
+		var destMark = L.marker([0, 0], {icon: destIcon}).addTo(map);
 
 		map.on('click', onMapClick);
 
@@ -504,7 +555,27 @@ session_start();
 			var northEast = L.latLng(latNorth, lngEast);
 			map.fitBounds(L.latLngBounds(southWest, northEast));
 		});
-		
+
+		$( "#generate_route_2" ).submit(function( event ) {
+			event.preventDefault();
+			// Remove all polylines
+			clearMap();
+			lats = [];
+			lons = [];
+			// draw polyline for route
+			drawPolyline( "api1/getroute.php?getroute=getroute"
+				+"&start="+$("#start").val()
+				+"&end="+$("#end").val());
+			// prevent reload
+			var latSouth = Math.max.apply(Math, lats);
+			var latNorth = Math.min.apply(Math, lats);
+			var lngWest = Math.max.apply(Math, lons);
+			var lngEast = Math.min.apply(Math, lons);
+			var southWest = L.latLng(latSouth, lngWest);
+			var northEast = L.latLng(latNorth, lngEast);
+			map.fitBounds(L.latLngBounds(southWest, northEast));
+		});
+
 		$( "#showedges_simple" ).submit(function( event ) {
 			// Remove all polylines
 			clearMap();
@@ -558,19 +629,21 @@ session_start();
 			clearMap();
 		});
 		
+		/*
 		$("#routing_start_p").click(function() {
 			var uri = "api1/getroute.php?getid=getid&lat=" + $("#start_lat").val() + "&lon=" + $("#start_lon").val();
 			$.getJSON(uri, function (json) {
-				$('#routing_start_id').replaceWith("<p id=\"routing_start_id\">(id=" + json.id + ")</p>");
 			});
 		});
+		*/
 		
+		/*
 		$("#routing_end_p").click(function() {
 			var uri = "api1/getroute.php?getid=getid&lat=" + $("#end_lat").val() + "&lon=" + $("#end_lon").val();
 			$.getJSON(uri, function (json) {
-				$('#routing_end_id').replaceWith("<p id=\"routing_end_id\">(id=" + json.id + ")</p>");
 			});
 		});
+		*/
 		
 	</script>
 <?php
