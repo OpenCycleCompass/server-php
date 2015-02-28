@@ -20,6 +20,7 @@ session_start();
 <title>ibis - Map View</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64" href="favicon.ico">
 <link href="fontawesome/css/font-awesome.min.css" rel="stylesheet">
 <link rel="stylesheet"
 	href="leaflet/leaflet.css" />
