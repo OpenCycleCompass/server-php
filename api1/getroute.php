@@ -58,7 +58,7 @@ if( isset($_GET["getroute"])
 	
 	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
 	// Generate route
-	$query = "CREATE TABLE ".$temp_table." AS
+	$query = "CREATE TEMP TABLE ".$temp_table." AS
 	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length FROM pgr_dijkstra('
 				SELECT gid AS id,
 					source::integer,
