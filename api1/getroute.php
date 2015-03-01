@@ -58,8 +58,8 @@ if( isset($_GET["getroute"])
 	
 	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
 	// Generate route
-	$query = "CREATE TEMP TABLE ".$temp_table." AS
-	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS the_geom, b.length FROM pgr_dijkstra('
+	$query = "CREATE TABLE ".$temp_table." AS
+	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length FROM pgr_dijkstra('
 				SELECT gid AS id,
 					source::integer,
 					target::integer,
@@ -67,7 +67,7 @@ if( isset($_GET["getroute"])
 				FROM ways, classes c
 				WHERE class_id = c.id',
 			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);
-	SELECT the_geom FROM  ".$temp_table.";
+	SELECT geom_text FROM  ".$temp_table.";
 	";
 	
 	// Send $query via email to jufo2@mytfg.de for debugging
@@ -80,7 +80,7 @@ if( isset($_GET["getroute"])
 		$row_cnt = 0;
 		$row_num = pg_num_rows($result);
 		while ($row = pg_fetch_assoc($result)) {
-			$geom = substr($row["the_geom"], 11, -1);
+			$geom = substr($row["geom_text"], 11, -1);
 			$points = explode(",", $geom);
 			$subdata = array();
 			foreach($points as $point) {
@@ -133,6 +133,12 @@ if( isset($_GET["getroute"])
 		$json_obj["points"] = $data_single_id;
 		$json_obj["numpoints"] = $new_id;
 		
+		/*$query = "ALTER TABLE ".$temp_table." ADD COLUMN c_height numeric(16,8);
+		UPDATE ".$temp_table." SET c_height = IBIS_getAltitude(ST_PointN(the_geom, 0));";
+		$result = pg_query($query);
+		if(!$result) {
+			die("<pre>".pg_last_error());
+		} */
 		// Calulate exact Distance:
 		//$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
 		$query = "ALTER TABLE ".$temp_table." ADD COLUMN c_dist numeric(16,8);
