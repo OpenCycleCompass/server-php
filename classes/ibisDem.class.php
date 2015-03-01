@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION IBIS_getAltitude(pnt geometry)
 	RETURNS numeric(16,8) AS
 $$
 DECLARE
-	altitude numeric(16,8);
+	aaltitude numeric(16,8);
 	a1 numeric(16,8);
 	a2 numeric(16,8);
 	a3 numeric(16,8);
@@ -17,7 +17,7 @@ DECLARE
 	d2 numeric(16,8);
 	d3 numeric(16,8);
 BEGIN
-	CREATE TEMP TABLE tt AS SELECT altitude, ST_Distance(the_geom, pnt) AS dist FROM altitude ORDER BY the_geom <-> pnt LIMIT 3;
+	CREATE TEMP TABLE tt AS SELECT altitude AS alt, ST_Distance(the_geom, pnt) AS dist FROM altitude ORDER BY the_geom <-> pnt LIMIT 3;
 	ALTER TABLE tt ADD COLUMN c_id SERIAL;
 	SELECT alt FROM tt WHERE c_id = 1 INTO a1;
 	SELECT alt FROM tt WHERE c_id = 2 INTO a2;
@@ -25,8 +25,9 @@ BEGIN
 	SELECT dist FROM tt WHERE c_id = 1 INTO d1;
 	SELECT dist FROM tt WHERE c_id = 2 INTO d2;
 	SELECT dist FROM tt WHERE c_id = 2 INTO d3;
-	altitude := ( (a1*(d2 + d3)) + (a2*(d1 + d3)) + (a3*(d1 + d2)) ) / (2*(d1 + d2 + d3));
-	RETURN altitude;
+	DROP TABLE tt;
+	aaltitude := ( (a1*(d2 + d3)) + (a2*(d1 + d3)) + (a3*(d1 + d2)) ) / (2*(d1 + d2 + d3));
+	RETURN aaltitude;
 END;
 $$
 LANGUAGE 'plpgsql';";
