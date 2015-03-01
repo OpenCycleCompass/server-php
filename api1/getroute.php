@@ -133,16 +133,20 @@ if( isset($_GET["getroute"])
 		$json_obj["points"] = $data_single_id;
 		$json_obj["numpoints"] = $new_id;
 		
-		// Calulate Distance:
-		$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
+		// Calulate exact Distance:
+		//$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
+		$query = "ALTER TABLE ".$temp_table." ADD COLUMN c_dist numeric(16,8);
+		UPDATE ".$temp_table." SET c_dist = ST_Length_Spheroid(the_geom, 'SPHEROID[\"WGS 84\",6378137,298.257223563]');
+		SELECT SUM(c_dist) AS exact_distance, SUM(length)*1000 AS distance FROM  ".$temp_table.";";
 		$result = pg_query($query);
 		if($result) {
 			$row = pg_fetch_assoc($result);
-			$json_obj["distance"] = floatval($row["distance"]);
+			$json_obj["distance"] = floatval($row["exact_distance"]);
+			$json_obj["inexact_distance"] = floatval($row["distance"]);
 			$out = json_encode($json_obj);
 			pg_free_result($result);
 		} else {
-			$out = json_encode(array("error" => "Keine Route gefunden."));
+			$out = json_encode(array("error" => "Keine Route gefunden. <pre>".pg_last_error()));
 		}
 	} else {
 		$out = json_encode ( array (
