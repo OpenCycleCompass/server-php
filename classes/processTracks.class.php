@@ -79,7 +79,8 @@ class processTracks {
 			a.speed AS start_speed, 
 			b.speed AS end_speed, 
 			a.c_id AS start_c_id, 
-			b.c_id AS end_c_id
+			b.c_id AS end_c_id,
+			ST_Azimuth(a.the_geom, b.the_geom) AS bearing
 		FROM ".$ttid_nodes." a 
 		LEFT JOIN ".$ttid_nodes." b 
 			ON b.c_id-a.c_id=1;
@@ -106,7 +107,7 @@ class processTracks {
 		if($result) {
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error romoving rows containing NULL values.");
+			return array("error" => "Error removing rows containing NULL values.");
 		}
 		
 		// check if track is large enougth: more than 10 gps points
@@ -289,22 +290,143 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database.");
 		}
-		
-		// create column for gid of nearest node
-		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN nnode_gid integer;";
+
+		// create column for id of nearest way
+		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN nway_id integer;";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			pg_free_result($result);
 		} else {
 			return array("error" => "Error adding nnode_gid column.");
 		}
+
+		// Get min/max lat/lon (bounding box)
+		$lat_min = 0;
+		$lat_max = 0;
+		$lon_min = 0;
+		$lno_max = 0;
+		$query = "SELECT lat FROM ".$ttid_nodes." ORDER BY lat DESC LIMIT 1;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			$row = pg_fetch_assoc($result);
+			$lat_max = $row["lat"];
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error calculating track bounds: ".pg_last_error($this->pg));
+		}
+		$query = "SELECT lat FROM ".$ttid_nodes." ORDER BY lat ASC LIMIT 1;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			$row = pg_fetch_assoc($result);
+			$lat_min = $row["lat"];
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error calculating track bounds: ".pg_last_error($this->pg));
+		}
+		$query = "SELECT lon FROM ".$ttid_nodes." ORDER BY lat DESC LIMIT 1;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			$row = pg_fetch_assoc($result);
+			$lon_max = $row["lon"];
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error calculating track bounds: ".pg_last_error($this->pg));
+		}
+		$query = "SELECT lon FROM ".$ttid_nodes." ORDER BY lat ASC LIMIT 1;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			$row = pg_fetch_assoc($result);
+			$lon_min = $row["lon"];
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error calculating track bounds: ".pg_last_error($this->pg));
+		}
+		$info["lat_min"] = $lat_min;
+		$info["lat_max"] = $lat_max;
+		$info["lon_min"] = $lon_min;
+		$info["lon_max"] = $lon_max;
+
+		// Dump all point from ways in bounding box around the Track into temp table tt_dumpedways
+		$query = "CREATE TEMP TABLE tt_dumpedways AS
+			SELECT the_geom, gid AS way_id
+			FROM ways
+			WHERE ways.the_geom && ST_MakeEnvelope(".$lon_min.", ".$lat_min.", ".$lon_max.", ".$lat_max.", 4326);";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error creating temporary table tt_dumpedways in database: ".pg_last_error($this->pg));
+		}
+		// create id column: c_id: autoincrements as of typ SERIAL
+		$query = "ALTER TABLE tt_dumpedways ADD COLUMN c_id SERIAL;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error adding c_id column to tt_dumpedways table.");
+		}
 		
+		// Create temp table tt_dumpedpoints
+		$query = "CREATE TEMP TABLE tt_dumpedpoints(the_geom geometry(Point,4326), bearing double precision, way_id integer, c_id SERIAL);";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error creating temporary table tt_dumpedpoints in database: ".pg_last_error($this->pg));
+		}
+
+		// Create (or update) PL/PgSQL function to extract information from linestrings needed to match track
+		$query = "
+		CREATE OR REPLACE FUNCTION IBIS_prepareLineString(lnestr geometry, id integer)
+			RETURNS TABLE (the_geom geometry, bearing real, way_id integer) AS
+		$$
+		BEGIN
+			DROP TABLE IF EXISTS tt_way_points;
+			CREATE TEMP TABLE tt_way_points AS
+				SELECT (dp).path[1] AS index, (dp).geom AS t_the_geom
+				FROM (SELECT ST_DumpPoints(lnestr) AS dp
+				) AS foo;
+			ALTER TABLE tt_way_points ADD COLUMN c_id SERIAL;
+			ALTER TABLE tt_way_points ADD COLUMN t_way_id integer;
+			UPDATE tt_way_points SET t_way_id = id;
+			ALTER TABLE tt_way_points ADD COLUMN t_bearing real;
+			UPDATE tt_way_points SET t_bearing = 0;
+			UPDATE tt_way_points AS a
+				SET t_bearing = ST_Azimuth(a.t_the_geom, b.t_the_geom)
+				FROM tt_way_points AS b
+				WHERE b.c_id = a.c_id+1;
+			UPDATE tt_way_points AS a
+				SET t_bearing = b.t_bearing
+				FROM tt_way_points AS b
+				WHERE a.t_bearing = 0 AND b.c_id+1 = a.c_id;
+			RETURN QUERY SELECT t_the_geom, t_bearing, t_way_id FROM tt_way_points;
+		END;
+		$$
+		LANGUAGE 'plpgsql';";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error creating IBIS_prepareLineString function: ".pg_last_error($this->pg));
+		}
+
+		// Extract points (and bearing) from every LineString from table tt_dumpedways, calculate bearing and insert into table tt_dumpedpoints
+		//$query = "CREATE TABLE tt_prepared_linestring AS SELECT IBIS_prepareLineString(the_geom, id) FROM tt_dumpedways;";
+		$query = "INSERT INTO tt_dumpedpoints SELECT (IBIS_prepareLineString(t.the_geom, t.way_id)).* FROM tt_dumpedways t;
+		CREATE INDEX the_geom_gist_idx ON tt_dumpedpoints USING GIST ( the_geom );";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error executing IBIS_prepareLineString() on tt_dumpedways: ".pg_last_error($this->pg));
+		}
+
 		// Find nearest way from ways table
-		$query = "SELECT c_id, ST_AsText(start_geom) as start_geom FROM ".$ttid_edges.";";
+		$query = "SELECT c_id, ST_AsText(start_geom) AS start_geom, bearing FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
-				$query1 = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('".$row["start_geom"]."') LIMIT 1;";
+				$query1 = "SELECT way_id FROM tt_dumpedpoints ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326)) + ABS(bearing-".$row["bearing"].")*10 ) LIMIT 1;";
 				$result1 = pg_query($this->pg, $query1);
 				if($result1) {
 					$row1 = pg_fetch_row($result1);
@@ -312,18 +434,21 @@ class processTracks {
 					pg_free_result($result1);
 				} else {
 					$nid = 0;
+					return array("error" => "Error finding nearest way from ways table: ".pg_last_error());
 				}
-				$query2 = "UPDATE ".$ttid_edges."  SET nnode_gid = ".$nid." WHERE c_id = ".$row["c_id"].";";
+				$query2 = "UPDATE ".$ttid_edges."  SET nway_id = ".$nid." WHERE c_id = ".$row["c_id"].";";
 				$result2 = pg_query($this->pg, $query2);
 				if($result1) {
 					pg_free_result($result2);
+				} else {
+					return array("error" => "Error saving nearest way to ways table: ".pg_last_error());
 				}
 			}
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error adding nnode_gid column.");
+			return array("error" => "Error populating way_id column.");
 		}
-		
+
 		// Add cost column
 		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN cost numeric(16,8);";
 		$result = pg_query($this->pg, $query);
@@ -332,7 +457,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error adding cost column.");
 		}
-		
+
 		// Calculate cost
 		/*
 		1.5-(1/(1-exp(".$avg_speed."/c_speed))) ??
@@ -345,25 +470,25 @@ class processTracks {
 		if($result) {
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error calculation cost column (c_speed != 0).");
+			return array("error" => "Error calculation cost column (c_speed != 0).".pg_last_error($this->pg));
 		}
 		$query = "UPDATE ".$ttid_edges." SET cost = 1.55 WHERE c_speed = 0;";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error calculation cost column (c_speed = 0).");
+			return array("error" => "Error calculation cost column (c_speed = 0).".pg_last_error($this->pg));
 		}
-		
+
 		// copy cost from TEMP edges table to dyncost table
-		$query = "SELECT c_id, nnode_gid, cost FROM ".$ttid_edges.";";
+		$query = "SELECT c_id, nway_id, cost FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
 				$query1 = "
 				INSERT INTO dyncost
-				(node_id, track_id, cost)
-				VALUES (".$row["nnode_gid"].", '".$track_id."', ".$row["cost"].")
+				(way_id, track_id, cost)
+				VALUES (".$row["nway_id"].", '".$track_id."', ".$row["cost"].")
 				;";
 				$result1 = pg_query($this->pg, $query1);
 				if($result1) {
@@ -372,7 +497,7 @@ class processTracks {
 			}
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error copy cost to dyncost table.");
+			return array("error" => "Error copy cost to dyncost table.".pg_last_error($this->pg));
 		}
 		
 		$info["success"] = true;
@@ -402,7 +527,7 @@ class processTracks {
 			$res["error"] = $error_cnt." of ".$tracknum." tracks failed.";
 			return $res;
 		} else {
-			return array("error" => "No tracks found.");
+			return array("error" => "No tracks found. ".pg_last_error($this->pg));
 		}
 	}
 
@@ -412,7 +537,7 @@ class processTracks {
 		if($this->my->affected_rows == 1) {
 			return $this->prepareTrack($track_id);
 		} else {
-			return array("error" => "Track not found.");
+			return array("error" => "Track not found. ".pg_last_error($this->pg));
 		}
 	}
 
