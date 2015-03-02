@@ -22,7 +22,12 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 	$end_lon = floatval($_GET["end_lon"]);
 	
 	// Return point of track $_GET["track_id"]
-	
+	if(isset($_GET["profile"])) {
+		$profile = pg_escape_string($_GET["profile"]);
+	}
+	else {
+		$profile = "default";
+	}
 	if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
 		$query = "SELECT 
 			ways.gid, 
@@ -34,6 +39,7 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 					ON ways.class_id = classes.id 
 		WHERE 
 			ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326)
+			AND classes.profile = '".$profile."'
 		LIMIT 
 			10000;";
 	} else {

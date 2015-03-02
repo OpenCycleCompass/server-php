@@ -45,6 +45,7 @@ session_start();
 			<li><a href="#routing_pane" role="tab"><i class="fa fa-location-arrow"></i></a></li>
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
 			<li><a href="#admin_pane" role="tab"><i class="fa fa-cogs"></i></a></li>
+			<li><a href="#profile_pane" role="tab"><i class="fa fa-area-chart"></i></a></li>
 			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
@@ -108,6 +109,14 @@ session_start();
 				<h3>In der DB enthaltene Kanten mit statischen Kosten visualisieren </h3>
 				<form id="showedges_staticcost">
 					<input type="submit" value="Visualisieren (farbig rot-gelb-grün)">
+					<br />
+					<label for="showedges_staticcost_profile">Profil wählen: </label>
+					<select id="showedges_staticcost_profile">
+						<option value="default">default</option>
+						<option value="fast">fast</option>
+						<option value="shortest">shortest</option>
+						<option value="scenery">scenery</option>
+					</select>
 				</form>
 				<h3>In der DB enthaltene Kanten mit dynamische Kosten visualisieren </h3>
 				<form id="showedges_dyncost">
@@ -121,7 +130,26 @@ session_start();
 				<!-- dynamic content with JS -->
 				</div>
 			</div>
-			
+
+			<div class="sidebar-pane" id="profile_pane">
+				<h1>iBis Routing Profile</h1>
+				<p>(<i>Authentifizierung ist zur Bearbeitung erforderlich.</i>)</p>
+				<form id="profile_select_form">
+					<label for="profile_select">Profil</label>
+					<select id="profile_select">
+						<option value="default">default</option>
+						<option value="fast">fast</option>
+						<option value="shortest">shortest</option>
+						<option value="scenery">scenery</option>
+					</select>
+					<input type="submit" value="Bearbeiten">
+				</form>
+				<hr />
+				<div id="profile_content">
+				<!-- dynamic content with JS -->
+				</div>
+			</div>
+
 			<div class="sidebar-pane" id="cleanmap_pane">
 				<h1>iBis Overlays</h1>
 				<h3>Alle Overlays entfernen</h3>
@@ -600,6 +628,7 @@ session_start();
 			var bounds = map.getBounds();
 			// draw polyline for every edge
 			drawMultiColorPolyline( "api1/gettopo.php?getedges=getedges&cost=static"
+				+"&profile="+$("#showedges_staticcost_profile").val()
 				+"&start_lat="+bounds.getNorth()
 				+"&start_lon="+bounds.getWest()
 				+"&end_lat="+bounds.getSouth()
@@ -629,7 +658,39 @@ session_start();
 			// Remove all polylines
 			clearMap();
 		});
-		
+
+		$( "#profile_select_form" ).submit(function( event ) {
+			// Check if user is authenticated
+			// TODO
+			// Load profile editor
+			$.getJSON("profile_content.php?profile="+$("#profile_select").val(), function(json) {
+				if(json.content) {
+					$("#profile_content").html(json.content);
+				} else {
+					alert("Cannot get profile editor");
+				}
+			});
+		});
+
+		function updateProfile(event) {
+			var url = "api1/updatecost.php?profile="+$("#profile_profile").val();
+			$("#profile_update_form .cost").each(function(){
+				url += "&" + $(this).attr("id") + "=" + $(this).val();
+			});
+			$.getJSON(url, function(json) {
+				if(json.error){
+					alert("Fehler: "+json.error);
+				} else if(json.success) {
+					alert("Erfolg: "+json.success);
+				} else {
+					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+				}
+			});
+			// Prevent reload:
+			event.preventDefault();
+			return false;
+		}
+
 		/*
 		$("#routing_start_p").click(function() {
 			var uri = "api1/getroute.php?getid=getid&lat=" + $("#start_lat").val() + "&lon=" + $("#start_lon").val();

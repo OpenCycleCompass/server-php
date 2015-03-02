@@ -18,28 +18,35 @@ if(!$pgr)
 
 $geocoding = new Geocoding();
 
-if( isset($_GET["getroute"]) 
-	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]))) 
-	|| (isset($_GET["start"]) && isset($_GET["start"])) ) ) {
+if(isset($_GET["getroute"])
+	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"])) || isset($_GET["start"]) ) 
+	&&   ( (isset($_GET["end_lat"]  ) && isset($_GET["end_lon"])  ) || isset($_GET["end"]  ) ) )) {
 	// return to route as arrays of LatLngs
-	
-	if(isset($_GET["start_lat"]) && isset($_GET["start_lon"])) {
+
+	if(isset($_GET["start_lat"])) {
 		$start_lat = floatval($_GET["start_lat"]);
 		$start_lon = floatval($_GET["start_lon"]);
-		$end_lat = floatval($_GET["end_lat"]);
-		$end_lon = floatval($_GET["end_lon"]);
 	} else {
 		$start = $geocoding->getCoordByAddr($_GET["start"]);
-		$end = $geocoding->getCoordByAddr($_GET["end"]);
-		if(isset($start["error"]) || isset($end["error"])) {
-			die(json_encode(array("error" => "End- oder Start-Adresse nicht gefunden.", "addinfo_start" => $start, "addinfo_end" => $end)));
+		if(isset($start["error"])) {
+			die(json_encode(array("error" => "Start-Adresse nicht gefunden.", "addinfo_start" => $start)));
 		}
 		$start_lat = $start["lat"];
 		$start_lon = $start["lon"];
+	}
+
+	if(isset($_GET["end_lat"])) {
+		$end_lat = floatval($_GET["end_lat"]);
+		$end_lon = floatval($_GET["end_lon"]);
+	} else {
+		$end = $geocoding->getCoordByAddr($_GET["end"]);
+		if(isset($end["error"])) {
+			die(json_encode(array("error" => "Ziel-Adresse nicht gefunden.", "addinfo_end" => $end)));
+		}
 		$end_lat = $end["lat"];
 		$end_lon = $end["lon"];
 	}
-	
+
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
 	$result = pg_query($query);
