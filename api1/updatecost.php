@@ -8,6 +8,8 @@ $pg = pg_connect($pgr_connectstr);
 if(!$pg)
 	die("Datenbankverbindung (PostgreSQL) nicht möglich.".pg_last_error($pg));
 
+session_start();
+
 if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok") {
 	$query = "SELECT id FROM classes WHERE profile = '".pg_escape_string($_GET["profile"])."';";
 	$result = pg_query($query);
@@ -38,7 +40,7 @@ if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_u
 		die(json_encode(array("error" => "Profile not found or corrupted. ".pg_last_error($pg))));
 	}
 } else if(isset($_GET["getprofiles"])) {
-	$query = "SELECT profile FROM classes GROUP BY profile;";
+	$query = "SELECT profile FROM classes GROUP BY profile ORDER BY profile ASC;";
 	$result = pg_query($query);
 	if($result) {
 		$profiles = array();
