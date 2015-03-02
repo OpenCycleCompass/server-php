@@ -37,8 +37,22 @@ if(isset($_GET["profile"])) {
 	else {
 		die(json_encode(array("error" => "Profile not found or corrupted. ".pg_last_error($pg))));
 	}
-	
-} else {
+} else if(isset($_GET["getprofiles"])) {
+	$query = "SELECT profile FROM classes GROUP BY profile;";
+	$result = pg_query($query);
+	if($result) {
+		$profiles = array();
+		while($row = pg_fetch_assoc($result)){
+			$profiles[] = $row["profile"];
+		}
+		pg_free_result($result);
+		$out = json_encode($profiles);
+	}
+	else {
+		die(json_encode(array("error" => "No Profiles found. ".pg_last_error($pg))));
+	}
+}
+else {
 	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 
