@@ -112,10 +112,7 @@ session_start();
 					<br />
 					<label for="showedges_staticcost_profile">Profil wählen: </label>
 					<select id="showedges_staticcost_profile">
-						<option value="default">default</option>
-						<option value="fast">fast</option>
-						<option value="shortest">shortest</option>
-						<option value="scenery">scenery</option>
+
 					</select>
 				</form>
 				<h3>In der DB enthaltene Kanten mit dynamische Kosten visualisieren </h3>
@@ -137,10 +134,7 @@ session_start();
 				<form id="profile_select_form">
 					<label for="profile_select">Profil</label>
 					<select id="profile_select">
-						<option value="default">default</option>
-						<option value="fast">fast</option>
-						<option value="shortest">shortest</option>
-						<option value="scenery">scenery</option>
+
 					</select>
 					<input type="submit" value="Bearbeiten">
 				</form>
@@ -171,7 +165,10 @@ session_start();
 
 		$( document ).ready( function() {
 			setTrackSelectOptions($("#track_select_num").val())
-			
+
+			// Set profile select options
+			setProfileOptions();
+
 			// admin pane:
 			$.getJSON("api1/login.php?status", function(json) {
 				if(json.status=="bad") {
@@ -276,7 +273,20 @@ session_start();
 				.append(options);
 				$("#track_select_num").val(s_num);
 			});
+		}
 
+		function setProfileOptions() {
+			var options_uri = "api1/updatecost.php?getprofiles";
+			$.getJSON(options_uri, function (json) {
+				var options = "";
+				for (var i = 0; i< json.length; i++) {
+					options += "<option value=\"" + json[i] + "\">" + json[i] + "</option>";
+				}
+				$('#profile_select').find("option").remove().end()
+				.append(options);
+				$('#showedges_staticcost_profile').find("option").remove().end()
+				.append(options);
+			});
 		}
 
 		// extend the default marker class (custon icon)
