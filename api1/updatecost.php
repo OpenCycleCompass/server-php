@@ -15,22 +15,34 @@ if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_u
 	$result = pg_query($query);
 	if($result) {
 		$error_cnt = 0;
+		$error_str = "";
 		$query2 = "";
 		while($row = pg_fetch_assoc($result)){
-			if(isset($_GET[$row["id"]])) {
-				$val = floatval($_GET[$row["id"]]);
+			if($row["id"]!=99999) {
+				if(isset($_GET[$row["id"]])) {
+					$val = floatval($_GET[$row["id"]]);
+				}
+				else {
+					$val = 1;
+					$error_cnt++;
+					$error_str .= $row["id"];
+				}
+				$query2 .= "UPDATE classes SET cost = ".$val." WHERE profile = '".pg_escape_string($_GET["profile"])."' AND id = ".intval($row["id"]).";\n";
 			}
-			else {
-				$val = 1;
-				$error_cnt++;
-			}
-			$query2 .= "UPDATE classes SET cost = ".$val." WHERE profile = '".pg_escape_string($_GET["profile"])."' AND id = ".intval($row["id"]).";\n";
 		}
+		if(isset($_GET["amount_dyncost"])) {
+			$val = floatval($_GET["amount_dyncost"]);
+		}
+		else {
+			$val = 0.5;
+			$error_cnt++;
+		}
+		$query2 .= "UPDATE classes SET cost = ".$val." WHERE profile = '".pg_escape_string($_GET["profile"])."' AND id = 99999;\n";
 		pg_free_result($result);
 		$result = pg_query($pg, $query2);
 		//echo($query2);
 		if($result) {
-			$out = json_encode(array("success" => "Profile ".$_GET["profile"]." successfully updated. (".$error_cnt." Fehler)"));
+			$out = json_encode(array("success" => "Profile ".$_GET["profile"]." successfully updated. (".$error_cnt." Fehler/".$error_str.")"));
 		}
 		else {
 			die(json_encode(array("error" => "Profile ".$_GET["profile"]." was not updated. ".pg_last_error($pg))));
