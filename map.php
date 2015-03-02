@@ -279,8 +279,8 @@ session_start();
 			var options_uri = "api1/updatecost.php?getprofiles";
 			$.getJSON(options_uri, function (json) {
 				var options = "";
-				for (var i = 0; i< json.length; i++) {
-					options += "<option value=\"" + json[i] + "\">" + json[i] + "</option>";
+				for (var key in json) {
+					options += "<option value=\"" + key + "\">" + json[key] + "</option>";
 				}
 				$('#profile_select').find("option").remove().end()
 				.append(options);

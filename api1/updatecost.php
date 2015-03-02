@@ -52,12 +52,18 @@ if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_u
 		die(json_encode(array("error" => "Profile not found or corrupted. ".pg_last_error($pg))));
 	}
 } else if(isset($_GET["getprofiles"])) {
-	$query = "SELECT profile FROM classes GROUP BY profile ORDER BY profile ASC;";
+	if(isset($_GET["lang"])){
+		$lang = pg_escape_string($_GET["lang"]);
+	}
+	else {
+		$lang = "de-DE";
+	}
+	$query = "SELECT name,description FROM profiles WHERE lang = '".$lang."' ORDER BY name ASC;";
 	$result = pg_query($query);
 	if($result) {
 		$profiles = array();
 		while($row = pg_fetch_assoc($result)){
-			$profiles[] = $row["profile"];
+			$profiles[$row["name"]] = $row["description"];
 		}
 		pg_free_result($result);
 		$out = json_encode($profiles);
