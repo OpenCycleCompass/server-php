@@ -8,7 +8,7 @@ $pg = pg_connect($pgr_connectstr);
 if(!$pg)
 	die("Datenbankverbindung (PostgreSQL) nicht möglich.".pg_last_error($pg));
 
-if(isset($_GET["profile"])) {
+if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok") {
 	$query = "SELECT id FROM classes WHERE profile = '".pg_escape_string($_GET["profile"])."';";
 	$result = pg_query($query);
 	if($result) {
