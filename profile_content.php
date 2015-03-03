@@ -3,29 +3,11 @@ header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 // Load config (for PgSQL db)
 include('api1/config.php');
+include('api1/functions.php');
 // Connect to PgSQL database
 $pg = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 // Start session
 session_start();
-
-function existsProfile($profile, $pg) {
-	$query = "SELECT COUNT(*) FROM classes WHERE profile = '".pg_escape_string($profile)."';";
-	$result = pg_query($pg, $query);
-	if($result) {
-		if ($line = pg_fetch_array($result)) {
-			if ($line[0] > 0) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return pg_last_error($pg);
-		}
-		pg_free_result($result);
-	} else {
-		return pg_last_error($pg);
-	}
-}
 
 function getProfileEditor($profile, $pg) {
 	$query = "SELECT id, name, cost FROM classes WHERE profile = '".pg_escape_string($profile)."' AND id <> 99999 ORDER BY name ASC;";
