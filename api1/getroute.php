@@ -63,6 +63,15 @@ if(isset($_GET["getroute"])
 	$end_id = $row[0];
 	//echo "End: ".$end_id;
 	
+	if(isset($_GET["profile"])) {
+		$profile = pg_escape_string($_GET["profile"]);
+		if(!(existsProfile($profile, $pgr)===true)) {
+			$profile = "default";
+		}
+	}
+	else {
+		$profile = "default";
+	}
 	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
 	// Generate route
 	$query = "CREATE TEMP TABLE ".$temp_table." AS
@@ -72,13 +81,34 @@ if(isset($_GET["getroute"])
 					target::integer,
 					(length * c.cost) AS cost
 				FROM ways, classes c
-				WHERE class_id = c.id',
+				WHERE class_id = c.id AND c.profile = ''".$profile."'' ',
 			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);
-	SELECT geom_text FROM  ".$temp_table.";
+			
+	ALTER TABLE ".$temp_table." ADD COLUMN dyncost numeric(16,8);
+	UPDATE ".$temp_table." SET dyncost = 1;
+	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.way_id;
+	SELECT geom_text, dyncost FROM  ".$temp_table.";
 	";
 	
+	/*$query = "CREATE TEMP TABLE ".$temp_table." AS
+	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length FROM pgr_dijkstra('
+				SELECT AVG(gid) AS id,
+					AVG(source)::integer AS source,
+					AVG(target)::integer AS target,
+					(AVG(length) * AVG(c.cost)) AS cost
+				FROM ways, dyncost c
+				WHERE gid = c.way_id',
+			" . $start_id . ", " . $end_id . ", false, false) a LEFT JOIN ways b ON (a.id2 = b.gid);
+	
+	ALTER TABLE ".$temp_table." ADD COLUMN dyncost numeric(16,8);
+	UPDATE ".$temp_table." SET dyncost = 1;
+	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.way_id;
+	
+	SELECT geom_text, dyncost FROM  ".$temp_table.";
+	";*/
+	
 	// Send $query via email to jufo2@mytfg.de for debugging
-	//error_log("pgRouting Query: " . $query, 1, "jufo2@mytfg.de");
+	error_log("pgRouting Query: " . $query . " \nLast Error: " . pg_last_error() , 1, "jufo2@mytfg.de");
 	
 	$result = pg_query ( $query );
 	if ( $result ) {
@@ -94,9 +124,15 @@ if(isset($_GET["getroute"])
 				$point_a = explode(" ", $point);
 				if($point_a[0] && $point_a[1]) {
 					//$id++;
-					$subdata[] = array(//"old_id" => $id,
-										"lat" => floatval($point_a[1]),
-										"lon" => floatval($point_a[0]));
+					if($row["dyncost"]==1) {
+						$subdata[] = array("lat" => floatval($point_a[1]),
+								"lon" => floatval($point_a[0]));
+					}
+					else {
+						$subdata[] = array("lat" => floatval($point_a[1]),
+								"lon" => floatval($point_a[0]),
+								"time_factor" => floatval($row["dyncost"]));
+					}
 				}
 			}
 			if(!empty($subdata)) {
