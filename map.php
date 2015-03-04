@@ -419,26 +419,27 @@ session_start();
 					var speed = dist/dtime;		// in m/s (meter/second)
 					// Color of line dependung on Speed
 					var color;
-					if(cost<0.55) {
-						color = "#00FF00";
-					} else if(cost<(0.65)) {
-						color = "#40FF00";
-					} else if(cost<(0.75)) {
-						color = "#80FF00";
-					} else if(cost<(0.90)) {
-						color = "#C0FF00";
-					} else if(cost<(1.05)) {
-						color = "#FFFF00";
-					} else if(cost<(1.25)) {
-						color = "#FFC000";
-					} else if(cost<(1.60)) {
-						color = "#FF8000";
-					} else if(cost<(2.50)) {
-						color = "#FF4000";
-					} else if(cost<(100.0)) {
+					var speed_co = 0.500;
+					if(speed<1*speed_co) {
 						color = "#FF0000";
+					} else if(speed<(3*speed_co)) {
+						color = "#FF4000";
+					} else if(speed<(5*speed_co)) {
+						color = "#FF8000";
+					} else if(speed<(8*speed_co)) {
+						color = "#FFC000";
+					} else if(speed<(11*speed_co)) {
+						color = "#FFFF00";
+					} else if(speed<(14*speed_co)) {
+						color = "#C0FF00";
+					} else if(speed<(17*speed_co)) {
+						color = "#80FF00";
+					} else if(speed<(20*speed_co)) {
+						color = "#40FF00";
+					} else if(speed<(25*speed_co)) {
+						color = "#10FF00";
 					} else {
-						color = "#000000";
+						color = "#0000FF";
 					}
 					var polyline = L.polyline(line_points, {color: color}).addTo(map);
 					lats.push(polyline.getBounds().getSouth());
