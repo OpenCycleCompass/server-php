@@ -15,7 +15,7 @@ $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
-if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static")) ){
+if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static") || ($_GET["cost"]=="dynamic")) ){
 	$start_lat = floatval($_GET["start_lat"]);
 	$start_lon = floatval($_GET["start_lon"]);
 	$end_lat = floatval($_GET["end_lat"]);
@@ -30,9 +30,9 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 	}
 	if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
 		$query = "SELECT 
-			ways.gid, 
+			ways.gid AS id,
 			ST_AsText(ways.the_geom), 
-			classes.cost 
+			classes.cost AS cost
 		FROM 
 			ways 
 				JOIN classes 
@@ -42,24 +42,37 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 			AND classes.profile = '".$profile."'
 		LIMIT 
 			10000;";
+	} else if(isset($_GET["cost"]) && $_GET["cost"] == "dynamic") {
+		$query = "SELECT
+			ways.gid AS id,
+			ST_AsText(ways.the_geom) AS geom,
+			dyncost.cost AS cost
+		FROM
+			ways
+				JOIN dyncost
+					ON ways.gid = dyncost.way_id
+		WHERE
+			ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326)
+		LIMIT
+			10000;";
 	} else {
-		$query = "SELECT gid, ST_AsText(the_geom) FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
+		$query = "SELECT gid AS id, ST_AsText(the_geom) AS geom, 1 AS cost FROM ways WHERE ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326) LIMIT 10000;";
 	}
 	$result = pg_query($query);
 	if($result) {
 		$data = array();
 		$row_counter = 0;
-		while ($row = pg_fetch_row($result)) {
+		while ($row = pg_fetch_assoc($result)) {
 			$row_counter++;
-			$gid = $row[0];
+			$gid = $row["id"];
 			
 			$subdata = array();
-			if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
-				$subdata[] = array("cost" => $row[2]);
+			if(isset($_GET["cost"])) {
+				$subdata[] = array("cost" => $row["cost"]);
 			}
 			$subdata[] = array("gid" => $gid);
 			
-			$geom = substr($row[1], 11, -1);
+			$geom = substr($row["geom"], 11, -1);
 			$points = explode(",", $geom);
 			foreach($points as $point) {
 				$point_a = explode(" ", $point);
