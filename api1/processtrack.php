@@ -29,6 +29,15 @@ else if(isset($_GET['all'])) {
 else if(isset($_GET['clear'])) {
 	$out = $processTracks->deleteDynCosts();
 }
+else if(isset($_GET['list'])) {
+	$query = "SELECT track_id FROM `ibis_server-php`.`tracks`;";
+	if($result = $my->query($query)) {
+		while($row = $result->fetch_assoc()) {
+			echo("<a href=\"https://10.2.11.94/api1/processtrack.php?track_id=".$row["track_id"]."\">".$row["track_id"]."</a><br />\n");
+		}
+	}
+	$out = "";
+}
 else {
 	$out = array("error" => "Eingaben fehlerhaft.");
 }
