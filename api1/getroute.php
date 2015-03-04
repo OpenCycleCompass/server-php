@@ -87,7 +87,7 @@ if(isset($_GET["getroute"])
 	ALTER TABLE ".$temp_table." ADD COLUMN dyncost numeric(16,8);
 	UPDATE ".$temp_table." SET dyncost = 1;
 	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.way_id;
-	SELECT geom_text, dyncost FROM  ".$temp_table.";
+	SELECT geom_text, dyncost FROM  ".$temp_table." ORDER BY seq;
 	";
 	
 	/*$query = "CREATE TEMP TABLE ".$temp_table." AS
@@ -108,7 +108,7 @@ if(isset($_GET["getroute"])
 	";*/
 	
 	// Send $query via email to jufo2@mytfg.de for debugging
-	error_log("pgRouting Query: " . $query . " \nLast Error: " . pg_last_error() , 1, "jufo2@mytfg.de");
+	//error_log("pgRouting Query: " . $query . " \nLast Error: " . pg_last_error() , 1, "jufo2@mytfg.de");
 	
 	$result = pg_query ( $query );
 	if ( $result ) {
