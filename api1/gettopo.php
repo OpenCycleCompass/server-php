@@ -31,7 +31,7 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 	if(isset($_GET["cost"]) && $_GET["cost"] == "static") {
 		$query = "SELECT 
 			ways.gid AS id,
-			ST_AsText(ways.the_geom), 
+			ST_AsText(ways.the_geom) AS geom, 
 			classes.cost AS cost
 		FROM 
 			ways 
