@@ -29,6 +29,7 @@ class processTracks {
 		$ttid_edges = $this->edges_prefix.$ttunique;
 		$ttid_dumpedways = $this->dumpedways_prefix.$ttunique;
 		$ttid_dumpedpoints = $this->dumpedpoints_prefix.$ttunique;
+		$ttid_dumpedpoints2 = $this->dumpedpoints_prefix."2".$ttunique;
 
 		// Import gps points from rawdata_server_php table into temporary table $ttid_nodes
 		//$query = "CREATE TEMP TABLE ".$ttid_nodes." AS
@@ -425,6 +426,18 @@ class processTracks {
 			return array("error" => "Error executing IBIS_prepareLineString() on ".$ttid_dumpedways.": ".pg_last_error($this->pg));
 		}
 
+		// copy entrys from ttid_dumpedpoints table two times into ttid_dumpedpoints2 table, with bearing and bearing-180° 
+		// (180° deg = PI rad = 3.14159265359)
+		$query = "CREATE TABLE ".$ttid_dumpedpoints2." AS
+		  SELECT the_geom, bearing, way_id FROM ".$ttid_dumpedpoints."
+		  UNION
+		  SELECT the_geom, (bearing-3.14159265359), way_id FROM ".$ttid_dumpedpoints.";";
+		$result = pg_query($this->pg, $query);
+		if(!$result) {
+			return array("error" => "Error creating ttid_dumpedpoints2 table from ttid_dumpedpoints".pg_last_error());
+		}
+		pg_free_result($result);
+
 		// remove rows with bearing = NULL
 		$query = "DELETE FROM ".$ttid_edges." WHERE bearing IS NULL;";
 		$result = pg_query($this->pg, $query);
@@ -440,7 +453,9 @@ class processTracks {
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
-				$query1 = "SELECT way_id FROM ".$ttid_dumpedpoints." ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326)) + ABS(bearing-".$row["bearing"].")*10 ) LIMIT 1;";
+				//$query1 = "SELECT way_id FROM ".$ttid_dumpedpoints2." ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326)) + ABS(bearing-".$row["bearing"].")*5 ) ASC LIMIT 1;";
+				$query1 = "SELECT way_id FROM ".$ttid_dumpedpoints2." ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326))) ASC LIMIT 1;";
+				echo($query1);
 				$result1 = pg_query($this->pg, $query1);
 				if($result1) {
 					$row1 = pg_fetch_row($result1);
@@ -513,6 +528,44 @@ class processTracks {
 			pg_free_result($result);
 		} else {
 			return array("error" => "Error copy cost to dyncost table.".pg_last_error($this->pg));
+		}
+		
+		// Get num of rows in temp tables
+		$query = "SELECT COUNT(*) FROM ".$ttid_dumpedways.";";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			if ($line = pg_fetch_array($result)) {
+				$info["rows_dumpedways"] = $line[0];
+			} else {
+				return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
+			}
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
+		}
+		$query = "SELECT COUNT(*) FROM ".$ttid_dumpedpoints.";";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			if ($line = pg_fetch_array($result)) {
+				$info["rows_dumpedpoints"] = $line[0];
+			} else {
+				return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
+			}
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
+		}
+		$query = "SELECT COUNT(*) FROM ".$ttid_dumpedpoints2.";";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			if ($line = pg_fetch_array($result)) {
+				$info["rows_dumpedpoints2"] = $line[0];
+			} else {
+				return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
+			}
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
 		
 		// create id column: c_id: autoincrements as of typ SERIAL
