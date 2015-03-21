@@ -96,7 +96,7 @@ session_start();
 				 </table>
 				</form>
 				<hr />
-				<p><b>Info:</b> Die Routenberechnung ist derzeit nur in den Regierungsbezirgen Arnsberg, Düsseldorf und Köln möglich.</p>
+				<p><b>Info:</b> Die Routenberechnung ist derzeit nur in Nordrhein-Westfalen möglich.</p>
 			</div>
 			
 			<div class="sidebar-pane" id="showtopo_pane">
@@ -523,7 +523,8 @@ session_start();
 
 		// http://{s}.tile.thunderforest.com/cycle (OpenCycleMap) ist leider nicht über https verfügbar
 		// -> leider MixedContent 
-		L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
+		//L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
+		L.tileLayer('https://tiles.rleh.de/tiles/thunderforest/{z}/{x}/{y}.png', {
 			maxZoom: 18
 		}).addTo(map);
 
