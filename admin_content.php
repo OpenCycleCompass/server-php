@@ -1,18 +1,10 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
-// Load config (for MySQL db)
+// Load config (for db)
 include('api1/config.php');
-// Connect to MySQL database
-$err_level = error_reporting(0);
-$my = new mysqli($my_host, $my_user, $my_pass);
-error_reporting($err_level);
-if($my->connect_error)
-	die("Datenbankverbindung (MySQL) nicht möglich.");
-$my->set_charset('utf8');
-$my->select_db($my_name);
 // Connect to PgSQL database
-//$pgr = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect($pgr_connectstr) or die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 // Start session
 session_start();
 
@@ -36,16 +28,17 @@ if(isset($_GET["content_get"])) {
 		<br />'));
 	} else if($_GET["content_get"] == "delete") {
 		if(isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok") {
-			$query = "SELECT `name`,`track_id`,`created`,`nodes` FROM `ibis_server-php`.`tracks` ORDER BY `created` DESC;";
-			$result = $my->query($query);
+			$query = "SELECT name, track_id, created, nodes FROM tracks ORDER BY created DESC;";
+			$result = pg_query($pg, $query);
 			$options = "";
-			if($result->num_rows >= 1){
+			if($result && (pg_num_rows($result) >= 1)){
 				$data = array();
-				while($row = $result->fetch_assoc()){
+				while($row = pg_fetch_assoc($result)){
 					$options .= "\t\t\t\t\t\t<option value=\"" . $row["track_id"] . "\">" .
 					$row["name"] . " (" . date("d.m. ~H", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)" 
 					. "(" . $row["nodes"] . " Punkte)</option>\n";
 				}
+				pg_free_result($result);
 			}
 			$out = json_encode(array("content" => '
 			<h1>iBis Tracks Löschen</h1>
@@ -77,8 +70,5 @@ if(isset($_GET["content_get"])) {
 echo($out);
 
 // Close PgSQL connection
-//pg_close($pgr);
-
-// Close MySQL connection
-$my->close();
+pg_close($pg);
 ?>
