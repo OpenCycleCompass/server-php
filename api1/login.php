@@ -1,35 +1,28 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
-// Load config (for MySQL db)
+// Load config (for db)
 include('config.php');
-// Connect to MySQL database
-$err_level = error_reporting(0);
-$my = new mysqli($my_host, $my_user, $my_pass);
-error_reporting($err_level);
-if($my->connect_error)
-	die("Datenbankverbindung (MySQL) nicht möglich.");
-$my->set_charset('utf8');
-$my->select_db($my_name);
 // Start session
 session_start();
 // Process input
 if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (isset($_POST["password"]) || isset($_GET["password"])) && (!empty($_POST["password"]) || !empty($_GET["password"])) ) {
 	if(isset($_POST["password"])) {
-		$pw = $my->real_escape_string($_POST["password"]);
+		$pw = pg_escape_string($pg, $_POST["password"]);
 	} else {
-		$pw = $my->real_escape_string($_GET["password"]);
+		$pw = pg_escape_string($pg, $_GET["password"]);
 	}
 	$success = false;
-	$query = "SELECT `password` FROM `admin_users` WHERE `name` = '".$my->real_escape_string($_GET["user"])."';";
-	$result = $my->query($query);
-	if($result->num_rows >= 1){
+	$query = "SELECT password FROM admin_users WHERE name = '".$my->real_escape_string($_GET["user"])."';";
+	$result = pg_query($pg, $query);
+	if($result && pg_num_rows($result) >= 1){
 		// possible multiple users with same name but different password -> multiple rows in MySQL db
-		while($row = $result->fetch_assoc()){
+		while($row = pg_fetch_assoc($result)){
 			if(password_verify($pw, $row["password"])) {
 				$success = true;
 			}
 		}
+		pg_free_result($pg);
 	}
 	if($success) {
 		$_SESSION["auth_user"] = "ok";
@@ -42,10 +35,10 @@ if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (is
 		&& isset($_GET["new"]) && isset($_GET["user"]) && !empty($_GET["user"]) 
 		&& isset($_GET["password"]) && !empty($_GET["password"])) 
 {
-	$pw = password_hash($my->real_escape_string($_GET["password"]), PASSWORD_DEFAULT);
-	$query = "INSERT INTO `ibis_server-php`.`admin_users` (`id`, `name`, `password`, `created`) 
-	VALUES (NULL, '".$my->real_escape_string($_GET["user"])."', '".$pw."', CURRENT_TIMESTAMP);";
-	$result = $my->query($query);
+	$pw = password_hash(pg_escape_string($pg, $_GET["password"]), PASSWORD_DEFAULT);
+	$query = "INSERT INTO admin_users (id, name, password, created)
+	VALUES (NULL, '".pg_escape_string($pg, $_GET["user"])."', '".$pw."', CURRENT_TIMESTAMP);";
+	$result = pg_query($pg, $query);
 	if($result) {
 		$out = json_encode(array("success" => "User successfully created"));
 	} else {
@@ -67,5 +60,4 @@ if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (is
 	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 echo($out);
-$my->close();
 ?>

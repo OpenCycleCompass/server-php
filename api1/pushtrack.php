@@ -4,13 +4,6 @@ date_default_timezone_set ( 'Europe/Berlin' );
 include ('config.php');
 include ('functions.php');
 include("../classes/geocoding.class.php");
-$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );
 
 $pgr = pg_connect ( $pgr_connectstr );
 if(!$pgr)
@@ -26,26 +19,26 @@ if( isset($_GET["newtrack"])
 		&& (isset($_GET['data']) || isset($_POST['data'])) ) {
 	
 	// user_token passed by the app.
-	$user_token = $my->real_escape_string ( $_GET ['user_token'] );
-	if (verify_token ( $user_token, $my )) {
+	$user_token = pg_escape_string($_GET['user_token']);
+	if (verify_token($user_token, $pgr)) {
 		// Create new unique track_id
 		// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
-		$track_id = uniqid ( "tra_", true );
+		$track_id = uniqid("tra_", true);
 		
 		// Created UNIX-timestamp
-		$created = time ();
+		$created = time();
 		
 		// Länge (in Metern) des Tracks
-		$length = intval($my->real_escape_string ( $_GET ['length'] ));
+		$length = intval(pg_escape_string($_GET['length']));
 		
 		// Dauer (in Sekunden) des Tracks
-		$duration = intval($my->real_escape_string ( $_GET ['duration'] ));
+		$duration = intval(pg_escape_string($_GET['duration']));
 		
 		// Name (vom User festgelegt) des Tracks; max. 49 chars
-		$name = substr ( $my->real_escape_string ( $_GET ['name'] ), 0, 48 );
+		$name = substr(pg_escape_string($_GET['name']), 0, 48 );
 		
 		// Beschreibung (vom User festgelegt) des Tracks; max. 249 chars
-		$comment = substr ( $my->real_escape_string ( $_GET ['comment'] ), 0, 248 );
+		$comment = substr(pg_escape_string($_GET['comment']), 0, 248 );
 		
 		// Public: Track is public availible (anonymous)
 		if(isset($_GET ['public']))
@@ -128,15 +121,17 @@ if( isset($_GET["newtrack"])
 				$city_district = NULL;
 			}
 			
-			$my->query ( "INSERT INTO `ibis_server-php`.`tracks` "
-					."(`user_token`, `track_id`, `created`, `length`, `duration`, `nodes`, `name`, "
+			pg_query($pgr, "INSERT INTO tracks "
+					."(user_token, track_id, created, length, duration, nodes, name, "
 						."`comment`, `public`, `hash`, `city`, `city_district`, `data_raw`) "
 					."VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "', "
 						."'" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', "
-						."'" . $comment . "', '" . $public . "', '" . $hash . "', '" . $my->real_escape_string($city) . "', "
-						."'" . $my->real_escape_string($city_district) . "', '" . $my->real_escape_string($data_raw) . "')" );
+						."'" . $comment . "', '" . $public . "', '" . $hash . "', '" . pg_escape_string($city) . "', "
+						."'" . pg_escape_string($city_district) . "', '" . pg_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
-			
+
+			// TODO Erfolg der query überprüfen? !!!
+
 			// Return/echo token with created and expiry timestamp as json
 			$out = json_encode ( array (
 					'track_id' => $track_id,
@@ -150,9 +145,7 @@ if( isset($_GET["newtrack"])
 			) );
 		}
 	} else {
-		$out = json_encode ( array (
-				"error" => "Der Token kann nicht verifiziert werden." 
-		) );
+		$out = json_encode(array("error" => "Der Token kann nicht verifiziert werden."));
 	}
 } else {
 	if(!isset($_POST["data"])) {
@@ -161,7 +154,6 @@ if( isset($_GET["newtrack"])
 		$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 	}
 }
-echo ($out);
-pg_close ( $pgr );
-$my->close ();
+echo($out);
+pg_close($pgr);
 ?>

@@ -1,16 +1,9 @@
 <?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
-include ('config.php');
-$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung (MySQL) nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );
+header('Content-Type: text/html; charset=utf-8');
+date_default_timezone_set('Europe/Berlin');
+include('config.php');
 
-$pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect($pg_connectstr) or die("Datenbankverbindung (PostgreSQL) nicht möglich.".pg_last_error());
 
 // MySQL Example:
 // $my->real_escape_string($_POST["text"]);
@@ -30,6 +23,5 @@ $pg = pg_connect ( $pg_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) n
 //}
 //pg_free_result ( $result );
 
-pg_close ( $pg );
-$my->close ();
+pg_close($pg);
 ?>

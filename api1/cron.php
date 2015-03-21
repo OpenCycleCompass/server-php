@@ -2,15 +2,14 @@
 header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 include('config.php');
-$err_level = error_reporting(0);
-$my = new mysqli($my_host, $my_user, $my_pass);
-error_reporting($err_level);
-if($my->connect_error) die("Datenbankverbindung nicht möglich.");
-$my->set_charset('utf8');
-$my->select_db($my_name);
+
+$pg = pg_connect($pgr_connectstr);
+if(!$pg)  die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 
 // Remove expired tokens from database:
-$my->query("DELETE FROM `ibis_server-php`.`tokens` WHERE `expired`>".time());
-		
-$my->close();
+$result = pg_query($pg, "DELETE FROM tokens WHERE expired > ".time());
+if(!$result) die("Löschen der abgelaufenen Token nicht möglich: ".pg_last_error());
+pg_free_result($result);
+
+pg_close($pg);
 ?>

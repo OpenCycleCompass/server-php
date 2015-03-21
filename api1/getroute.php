@@ -4,17 +4,9 @@ date_default_timezone_set ( 'Europe/Berlin' );
 include ('config.php');
 include ('functions.php');
 include("../classes/geocoding.class.php");
-$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );
 
-$pgr = pg_connect ( $pgr_connectstr );
-if(!$pgr)
-	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect($pgr_connectstr);
+if(!$pg) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 
 $geocoding = new Geocoding();
 
@@ -49,7 +41,7 @@ if(isset($_GET["getroute"])
 
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
-	$result = pg_query($query);
+	$result = pg_query($pg, $query);
 	$row = pg_fetch_row($result);
 	pg_free_result($result);
 	$start_id = $row[0];
@@ -57,15 +49,15 @@ if(isset($_GET["getroute"])
 	
 	// End point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $end_lon . " " . $end_lat . ")',4326) LIMIT 1";
-	$result = pg_query($query);
+	$result = pg_query($pg, $query);
 	$row = pg_fetch_row($result);
 	pg_free_result($result);
 	$end_id = $row[0];
 	//echo "End: ".$end_id;
 	
 	if(isset($_GET["profile"])) {
-		$profile = pg_escape_string($_GET["profile"]);
-		if(!(existsProfile($profile, $pgr)===true)) {
+		$profile = pg_escape_string($pg, $_GET["profile"]);
+		if(!(existsProfile($profile, $pg)===true)) {
 			$profile = "default";
 		}
 	}
@@ -112,8 +104,8 @@ if(isset($_GET["getroute"])
 	// Send $query via email to jufo2@mytfg.de for debugging
 	//error_log("pgRouting Query: " . $query . " \nLast Error: " . pg_last_error() , 1, "jufo2@mytfg.de");
 	
-	$result = pg_query ( $query );
-	if ( $result ) {
+	$result = pg_query($pg, $query);
+	if($result) {
 		$data = array();
 		//$id = 0;
 		$row_cnt = 0;
@@ -189,7 +181,7 @@ if(isset($_GET["getroute"])
 		$query = "ALTER TABLE ".$temp_table." ADD COLUMN c_dist numeric(16,8);
 		UPDATE ".$temp_table." SET c_dist = ST_Length_Spheroid(the_geom, 'SPHEROID[\"WGS 84\",6378137,298.257223563]');
 		SELECT SUM(c_dist) AS exact_distance, SUM(length)*1000 AS distance FROM  ".$temp_table.";";
-		$result = pg_query($query);
+		$result = pg_query($pg, $query);
 		if($result) {
 			$row = pg_fetch_assoc($result);
 			$json_obj["distance"] = floatval($row["exact_distance"]);
@@ -197,7 +189,7 @@ if(isset($_GET["getroute"])
 			$out = json_encode($json_obj);
 			pg_free_result($result);
 		} else {
-			$out = json_encode(array("error" => "Keine Route gefunden. <pre>".pg_last_error()));
+			$out = json_encode(array("error" => "Keine Route gefunden. <pre>".pg_last_error($pg)));
 		}
 	} else {
 		$out = json_encode ( array (
@@ -210,7 +202,7 @@ if(isset($_GET["getroute"])
 	
 	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $lon . " " . $lat . ")',4326) LIMIT 1";
-	$result = pg_query($query);
+	$result = pg_query($pg, $query);
 	if($result){
 		$row = pg_fetch_row($result);
 		$id = $row[0];
@@ -227,7 +219,6 @@ if(isset($_GET["getroute"])
 	) );
 }
 
-echo ($out);
-pg_close ( $pgr );
-$my->close ();
+echo($out);
+pg_close($pg);
 ?>

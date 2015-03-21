@@ -1,19 +1,11 @@
 <?php
 header ( 'Content-Type: text/html; charset=utf-8' );
 date_default_timezone_set ( 'Europe/Berlin' );
-include ('config.php');
-include ('functions.php');
-/*$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );*/
+include('config.php');
+include('functions.php');
 
-$pgr = pg_connect ( $pgr_connectstr );
-if(!$pgr)
-	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+$pgr = pg_connect($pgr_connectstr);
+if(!$pgr) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 
 if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static") || ($_GET["cost"]=="dynamic")) ){
 	$start_lat = floatval($_GET["start_lat"]);
@@ -91,12 +83,9 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 		) );
 	}
 } else {
-	$out = json_encode ( array (
-			"error" => "Keine oder falsche Eingabe." 
-	) );
+	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 
-echo ($out);
-pg_close ( $pgr );
-/*$my->close ();*/
+echo($out);
+pg_close($pgr);
 ?>

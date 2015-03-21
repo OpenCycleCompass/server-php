@@ -1,7 +1,8 @@
 <?php
-function verify_token($token, $my) {
-	$my->query("SELECT `id` FROM `ibis_server-php`.`tokens` WHERE `token`='".$token."'");
-	if($my->affected_rows == 1) {
+function verify_token($token, $pg) {
+	$result = pg_query($pg, "SELECT id FROM tokens WHERE token = '".$token."'");
+	if(pg_affected_rows($result) == 1) {
+		pg_free_result($result);
 		return 1;
 	} else {
 		return 0;
