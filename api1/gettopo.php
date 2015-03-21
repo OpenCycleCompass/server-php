@@ -50,7 +50,7 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 		FROM
 			ways
 				JOIN dyncost
-					ON ways.gid = dyncost.way_id
+					ON ways.osm_id = dyncost.osm_id
 		WHERE
 			ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326)
 		LIMIT

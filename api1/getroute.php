@@ -75,7 +75,7 @@ if(isset($_GET["getroute"])
 	$temp_table = str_replace("-","_",str_replace(".","_",uniqid("tmptbl_rt_", true)));
 	// Generate route
 	$query = "CREATE TEMP TABLE ".$temp_table." AS
-	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length FROM pgr_dijkstra('
+	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length, b.osm_id AS osm_id FROM pgr_dijkstra('
 				SELECT gid AS id,
 					source::integer,
 					target::integer,
@@ -86,7 +86,9 @@ if(isset($_GET["getroute"])
 			
 	ALTER TABLE ".$temp_table." ADD COLUMN dyncost numeric(16,8);
 	UPDATE ".$temp_table." SET dyncost = 1;
-	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.way_id;
+	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.gid;
+	--UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE osm_id = d.osm_id;
+	--UPDATE ".$temp_table." SET dyncost = d.cost FROM (SELECT AVG(cost), osm_id FROM dyncost GROUP BY osm_id) d WHERE osm_id = d.osm_id; -- ???
 	SELECT geom_text, dyncost FROM  ".$temp_table." ORDER BY seq;
 	";
 	
