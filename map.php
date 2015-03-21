@@ -1,19 +1,3 @@
-<?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
-include ('api1/config.php');
-$err_level = error_reporting ( 0 );
-$my = new mysqli ( $my_host, $my_user, $my_pass );
-error_reporting ( $err_level );
-if ($my->connect_error)
-	die ( "Datenbankverbindung (MySQL) nicht möglich." );
-$my->set_charset ( 'utf8' );
-$my->select_db ( $my_name );
-
-//$pgr = pg_connect ( $pgr_connectstr ) or die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
-
-session_start();
-?>
 <!doctype html>
 <html>
 <head>
@@ -744,9 +728,5 @@ session_start();
 		*/
 		
 	</script>
-<?php
-//pg_close ( $pgr );
-$my->close ();
-?>
 </body>
 </html>
