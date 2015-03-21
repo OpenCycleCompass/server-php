@@ -78,5 +78,5 @@ else {
 
 echo ($out);
 
-pg_close ( $pgr );
+pg_close($pg);
 ?>
