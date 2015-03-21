@@ -83,6 +83,11 @@ session_start();
 					<tr><td colspan="2"><p id="routing_end_p">Nach</p></td></tr>
 					<tr><td><label for="end_lat">Breite:</label></td><td><input type="text" name="end_lat" id="end_lat"></td></tr>
 					<tr><td><label for="end_lon">Länge:</label></td><td><input type="text" name="end_lon" id="end_lon"></td></tr>
+					<tr><td><label for="route_profile_latlon">Profil:</label></td><td>
+						<select id="route_profile_latlon">
+						</select>
+					</td></tr>
+					<tr><td><label for="route_optimize_latlon">Anhand von Nutzerdaten optimieren</label></td><td><input type="checkbox" name="route_optimize_latlon" id="route_optimize_latlon"></td></tr>
 					<tr><td>&nbsp;</td><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
@@ -92,6 +97,11 @@ session_start();
 				 <table>
 					<tr><td><label for="start">Von</label></td><td><input type="text" name="start" id="start"></td></tr>
 					<tr><td><label for="end">Nach</label></td><td><input type="text" name="end" id="end"></td></tr>
+					<tr><td><label for="route_profile_address">Profil:</label></td><td>
+						<select id="route_profile_address">
+						</select>
+					</td></tr>
+					<tr><td><label for="route_optimize_address">Anhand von Nutzerdaten optimieren</label></td><td><input type="checkbox" name="route_optimize_address" id="route_optimize_address"></td></tr>
 					<tr><td>&nbsp;</td><td><input type="submit" value="Route generieren"></td></tr>
 				 </table>
 				</form>
@@ -285,6 +295,10 @@ session_start();
 				$('#profile_select').find("option").remove().end()
 				.append(options);
 				$('#showedges_staticcost_profile').find("option").remove().end()
+				.append(options);
+				$('#route_profile_latlon').find("option").remove().end()
+				.append(options);
+				$('#route_profile_address').find("option").remove().end()
 				.append(options);
 			});
 		}
@@ -579,12 +593,18 @@ session_start();
 			clearMap();
 			lats = [];
 			lons = [];
+			var optimize = "&optimize=0";
+			if( $("#route_optimize_latlon").prop("checked") ) {
+				optimize = "&optimize=1";
+			}
 			// draw polyline for route
 			drawPolyline( "api1/getroute.php?getroute=getroute"
 				+"&start_lat="+$("#start_lat").val()
 				+"&start_lon="+$("#start_lon").val()
 				+"&end_lat="+$("#end_lat").val()
-				+"&end_lon="+$("#end_lon").val() );
+				+"&end_lon="+$("#end_lon").val()
+				+"&profile="+$("#route_profile_latlon").val()
+				+optimize);
 			// prevent reload
 			var latSouth = Math.max.apply(Math, lats);
 			var latNorth = Math.min.apply(Math, lats);
@@ -601,10 +621,16 @@ session_start();
 			clearMap();
 			lats = [];
 			lons = [];
+			var optimize = "&optimize=0";
+			if( $("#route_optimize_address").prop("checked") ) {
+				optimize = "&optimize=1";
+			}
 			// draw polyline for route
 			drawPolyline( "api1/getroute.php?getroute=getroute"
 				+"&start="+$("#start").val()
-				+"&end="+$("#end").val());
+				+"&end="+$("#end").val()
+				+"&profile="+$("#route_profile_address").val()
+				+optimize);
 			// prevent reload
 			var latSouth = Math.max.apply(Math, lats);
 			var latNorth = Math.min.apply(Math, lats);
