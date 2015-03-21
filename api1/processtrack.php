@@ -17,7 +17,7 @@ if(!$pg) die(json_encode(array("error" => "Datenbankverbindung (PostgreSQL) nich
 
 
 include('../classes/processTracks.class.php');
-$processTracks = new processTracks($pg, $my, "tt_nodes_", "tt_edges_");
+$processTracks = new processTracks($pg, $my);
 
 
 if(isset($_GET['track_id'])) {
