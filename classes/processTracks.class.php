@@ -1,5 +1,4 @@
 <?php
-
 include("mapMatching.class.php");
 
 class processTracks {
@@ -11,15 +10,14 @@ class processTracks {
 	private $dumpedpoints_prefix = "tt_dumpedpoints_";
 	//private $pg_temp_qualifier = "TEMP";
 	private $pg_temp_qualifier = "";
-	
+
 	public function __construct($p_pg) {
 		$this->pg = $p_pg;
 	}
-	
-	
+
 	private function prepareTrack($track_id) {
-		// verify track_id ??
-		
+		// verify track_id is done in superordinated function processTrack()
+
 		// $info variable for output track processing info
 		$info = array();
 
@@ -42,7 +40,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error creating temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// check if track is large enougth: more than 10 gps points
 		$query = "SELECT COUNT(id) FROM ".$ttid_nodes.";";
 		$result = pg_query($this->pg, $query);
@@ -60,7 +58,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database.");
 		}
-		
+
 		// create id column: c_id: autoincrements as of typ SERIAL
 		$query = "ALTER TABLE ".$ttid_nodes." ADD COLUMN c_id SERIAL;";
 		$result = pg_query($this->pg, $query);
@@ -69,7 +67,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error adding c_id column.");
 		}
-		
+
 		// create edge table 
 		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$ttid_edges." AS
 		SELECT 
@@ -94,7 +92,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error creating temporary edges table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// create id column: c_id: autoincrements as of typ SERIAL
 		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN c_id SERIAL;";
 		$result = pg_query($this->pg, $query);
@@ -103,7 +101,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error adding c_id column.");
 		}
-		
+
 		// create id column: c_id: autoincrements as of typ SERIAL
 		$query = "DELETE FROM ".$ttid_edges." WHERE start_c_id IS NULL OR end_c_id IS NULL;";
 		$result = pg_query($this->pg, $query);
@@ -112,7 +110,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error removing rows containing NULL values.");
 		}
-		
+
 		// check if track is large enougth: more than 10 gps points
 		$query = "SELECT COUNT(c_id) FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
@@ -130,7 +128,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// create column for calculated speed: c_speed
 		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN c_speed numeric(16,8);";
 		$result = pg_query($this->pg, $query);
@@ -139,7 +137,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error adding c_speed column: ".pg_last_error($this->pg));
 		}
-		
+
 		// create column for calculated distance: c_dist
 		$query = "ALTER TABLE ".$ttid_edges." ADD COLUMN c_dist numeric(16,8);";
 		$result = pg_query($this->pg, $query);
@@ -167,7 +165,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error adding c_tdiff column: ".pg_last_error($this->pg));
 		}
-		
+
 		// calculate speed: c_dist
 		$query = "UPDATE ".$ttid_edges." SET c_dist = ST_Distance_Sphere(end_geom, start_geom);";
 		$result = pg_query($this->pg, $query);
@@ -176,7 +174,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error calculation c_dist column: ".pg_last_error($this->pg));
 		}
-		
+
 		// remove rows with c_dist > 100.0 (meters)
 		$query = "UPDATE ".$ttid_edges." SET bad = TRUE WHERE c_dist > 100.0;";
 		$result = pg_query($this->pg, $query);
@@ -186,7 +184,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error removing rows with c_dist > 100.0");
 		}
-		
+
 		// calculate speed: c_tdiff
 		$query = "UPDATE ".$ttid_edges." SET c_tdiff = end_time-start_time;";
 		$result = pg_query($this->pg, $query);
@@ -195,7 +193,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error calculation c_tdiff column: ".pg_last_error($this->pg));
 		}
-		
+
 		// remove rows with c_tdiff > 60 (seconds)
 		$query = "UPDATE ".$ttid_edges." SET bad = TRUE WHERE c_tdiff > 60;";
 		$result = pg_query($this->pg, $query);
@@ -205,7 +203,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error removing rows with c_tdiff > 60");
 		}
-		
+
 		// remove rows with c_tdiff < 0.5 (seconds)
 		$query = "UPDATE ".$ttid_edges." SET bad = TRUE WHERE c_tdiff < 0.5;";
 		$result = pg_query($this->pg, $query);
@@ -215,7 +213,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error removing rows with c_tdiff < 0.5");
 		}
-		
+
 		// calculate speed: c_speed
 		$query = "UPDATE ".$ttid_edges." SET c_speed = c_dist/c_tdiff;";
 		$result = pg_query($this->pg, $query);
@@ -224,7 +222,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error calculation c_speed column: ".pg_last_error($this->pg));
 		}
-		
+
 		// check if average speed seems serious
 		$query = "SELECT AVG(c_speed) FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
@@ -244,7 +242,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// Get total distance
 		$query = "SELECT SUM(c_dist) FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
@@ -258,7 +256,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// remove rows with c_speed > 25.0 m/s = 90 km/h
 		$query = "UPDATE ".$ttid_edges." SET bad = TRUE WHERE c_speed > 25.0;";
 		$result = pg_query($this->pg, $query);
@@ -268,7 +266,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error removing rows with c_speed > 25.0");
 		}
-		
+
 		// check if average speed seems serious
 		$query = "SELECT AVG(c_speed) FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
@@ -289,7 +287,7 @@ class processTracks {
 		} else {
 			return array("error" => "Error reading from temporary table in database.");
 		}
-		
+
 		// Get total distance
 		$query = "SELECT SUM(c_dist) FROM ".$ttid_edges.";";
 		$result = pg_query($this->pg, $query);
@@ -314,10 +312,8 @@ class processTracks {
 		}
 
 		$query = "SELECT COUNT(*) FROM ".$ttid_edges." e1 
-			INNER JOIN ".$ttid_edges." e2
-				ON e2.start_id = e1.end_id
-			WHERE 	e1.bad = TRUE 
-				AND e2.bad = TRUE;";
+			INNER JOIN ".$ttid_edges." e2 ON e2.start_id = e1.end_id
+			WHERE 	e1.bad = TRUE AND e2.bad = TRUE;";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			if ($line = pg_fetch_array($result)) {
@@ -404,63 +400,6 @@ class processTracks {
 			return array("error" => "Error copying cost column to nodes table.".pg_last_error($this->pg));
 		}
 
-
-	/*	// copy entrys from ttid_dumpedpoints table two times into ttid_dumpedpoints2 table, with bearing and bearing-180° 
-		// (180° deg = PI rad = 3.14159265359)
-		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$ttid_dumpedpoints2." AS
-		  SELECT the_geom, bearing, way_id FROM ".$ttid_dumpedpoints."
-		  UNION
-		  SELECT the_geom, (bearing-3.14159265359), way_id FROM ".$ttid_dumpedpoints.";";
-		$result = pg_query($this->pg, $query);
-		if(!$result) {
-			return array("error" => "Error creating ttid_dumpedpoints2 table from ttid_dumpedpoints".pg_last_error());
-		}
-		pg_free_result($result);
-
-		// remove rows with bearing = NULL
-		$query = "DELETE FROM ".$ttid_edges." WHERE bearing IS NULL;";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			$info["deleted_bearing_null"] = pg_affected_rows($result);
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error removing rows with bearing = NULL");
-		}
-	*/
-
-	/*	// Find nearest way from ways table
-		$query = "SELECT c_id, ST_AsText(start_geom) AS start_geom, bearing FROM ".$ttid_edges.";";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			while($row = pg_fetch_assoc($result)) {
-				//$query1 = "SELECT way_id FROM ".$ttid_dumpedpoints2." ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326)) + ABS(bearing-".$row["bearing"].")*5 ) ASC LIMIT 1;";
-				$query1 = "SELECT way_id FROM ".$ttid_dumpedpoints2." ORDER BY (ST_Distance(the_geom, ST_SetSRID(ST_GeomFromText('".$row["start_geom"]."'),4326))) ASC LIMIT 1;";
-				//echo($query1);
-				$result1 = pg_query($this->pg, $query1);
-				if($result1) {
-					$row1 = pg_fetch_row($result1);
-					$nid = $row1[0];
-					pg_free_result($result1);
-				} else {
-					$nid = 0;
-					return array("error" => "Error finding nearest way from ways table: ".pg_last_error()." || ".$query1);
-				}
-				$query2 = "UPDATE ".$ttid_edges."  SET nway_id = ".$nid." WHERE c_id = ".$row["c_id"].";";
-				$result2 = pg_query($this->pg, $query2);
-				if($result1) {
-					pg_free_result($result2);
-				} else {
-					return array("error" => "Error saving nearest way to ways table: ".pg_last_error());
-				}
-			}
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error populating way_id column.");
-		}
-	*/
-
-
-
 		$mapmatching = new mapMatching($this->pg, $ttid_nodes, $ttid_edges, $ttunique);
 		$matchedways = $mapmatching->matchTrack();
 		if(!isset($matchedways["success"])) {
@@ -468,12 +407,6 @@ class processTracks {
 		}
 		$info["matchedways_return"] = $matchedways;
 		$ttid_matchedways = $matchedways["ttid"];
-		//echo($ttid_matchedways."<br />");
-		//var_dump($matchedways);
-
-
-
-
 
 		// copy cost (forward) from ".$this->pg_temp_qualifier." edges table to dyncost table
 		$query = "SELECT osm_id, cost FROM ".$ttid_matchedways." WHERE cost <> -1::numeric(16,8) AND reverse = FALSE;";
@@ -493,7 +426,27 @@ class processTracks {
 			}
 			pg_free_result($result);
 		} else {
-			return array("error" => "Error copy cost to dyncost table.".pg_last_error($this->pg));
+			return array("error" => "Error copy (forward) cost to dyncost table: ".pg_last_error($this->pg));
+		}
+		// copy reverse cost from ".$this->pg_temp_qualifier." edges table to dyncost table
+		$query = "SELECT osm_id, cost FROM ".$ttid_matchedways." WHERE cost <> -1::numeric(16,8) AND reverse = TRUE;";
+		$result = pg_query($this->pg, $query);
+		if($result) {
+			while($row = pg_fetch_assoc($result)) {
+				var_dump($row["reverse"]);
+				$query1 = "
+				INSERT INTO dyncost
+				(track_id, reverse_cost, osm_id)
+				VALUES ('".$track_id."', ".$row["cost"].", ".$row["osm_id"].")
+				;";
+				$result1 = pg_query($this->pg, $query1);
+				if($result1) {
+					pg_free_result($result1);
+				}
+			}
+			pg_free_result($result);
+		} else {
+			return array("error" => "Error copy reverse cost to dyncost table: ".pg_last_error($this->pg));
 		}
 
 		if(!isset($_GET["nodrop"])) {

@@ -4,14 +4,12 @@ class mapMatching {
 	// variables
 	private $pg;
 	private $dumpedways_prefix = "tt_dumpedways_";
-	private $dumpedpoints_prefix = "tt_dumpedpoints_";
 	private $matchedways_prefix = "tt_matchedways_";
 	private $routedways_prefix = "tt_routedways_";
-	private $pg_temp_qualifier = "";
+	private $pg_temp_qualifier = "TEMP";
 	private $ttid_nodes;
 	private $ttid_edges;
 	private $ttid_dumpedways;
-	//private $ttid_dumpedpoints;
 	private $ttid_matchedways;
 	private $ttid_routedways;
 	private $node_cnt;
@@ -21,13 +19,11 @@ class mapMatching {
 		$this->ttid_nodes = $p_ttid_nodes;
 		$this->ttid_edges = $p_ttid_edges;
 		$this->ttid_dumpedways = $this->dumpedways_prefix.$ttunique;
-		//$this->ttid_dumpedpoints = $this->dumpedpoints_prefix.$ttunique;
 		$this->ttid_matchedways = $this->matchedways_prefix.$ttunique;
 		$this->ttid_routedways = $this->routedways_prefix.$ttunique;
 	}
 
 	public function matchTrack() {
-	
 		// Get min/max lat/lon (bounding box)
 		$lat_min = 0;
 		$lat_max = 0;
@@ -74,11 +70,7 @@ class mapMatching {
 		$return["lon_min"] = $lon_min;
 		$return["lon_max"] = $lon_max;
 
-		// Dump all point from ways in bounding box around the Track into temp table ".$ttid_dumpedways."
-// 		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_dumpedways." AS
-// 			SELECT the_geom, gid, source, target, osm_id
-// 			FROM ways
-// 			WHERE ways.the_geom && ST_MakeEnvelope(".$lon_min.", ".$lat_min.", ".$lon_max.", ".$lat_max.", 4326);";
+		// Create table dumpedways
 		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_dumpedways." AS
 			SELECT * FROM ways
 			WHERE ways.the_geom && ST_MakeEnvelope(".$lon_min.", ".$lat_min.", ".$lon_max.", ".$lat_max.", 4326);";
@@ -88,6 +80,7 @@ class mapMatching {
 		} else {
 			return array("error" => "Error creating temporary table ".$this->ttid_dumpedways." in database: ".pg_last_error($this->pg));
 		}
+
 		// create id column: c_id: autoincrements as of typ SERIAL
 		$query = "ALTER TABLE ".$this->ttid_dumpedways." ADD COLUMN c_id SERIAL;";
 		$result = pg_query($this->pg, $query);
@@ -96,78 +89,6 @@ class mapMatching {
 		} else {
 			return array("error" => "Error adding c_id column to ".$this->ttid_dumpedways." table.");
 		}
-
-	/*
-		// Create temp table ".$ttid_dumpedpoints."
-		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_dumpedpoints."(the_geom geometry(Point,4326), bearing double precision, way_id integer, c_id SERIAL);";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error creating temporary table ".$this->ttid_dumpedpoints." in database: ".pg_last_error($this->pg));
-		}
-
-		// Create (or update) PL/PgSQL function to extract information from linestrings needed to match track
-		$query = "
-		CREATE OR REPLACE FUNCTION IBIS_prepareLineString(lnestr geometry, id integer)
-			RETURNS TABLE (the_geom geometry, bearing real, way_id integer) AS
-		$$
-		BEGIN
-			DROP TABLE IF EXISTS tt_way_points;
-			CREATE TEMP TABLE tt_way_points AS
-				SELECT (dp).path[1] AS index, (dp).geom AS t_the_geom
-				FROM (SELECT ST_DumpPoints(lnestr) AS dp
-				) AS foo;
-			ALTER TABLE tt_way_points ADD COLUMN c_id SERIAL;
-			ALTER TABLE tt_way_points ADD COLUMN t_way_id integer;
-			UPDATE tt_way_points SET t_way_id = id;
-			ALTER TABLE tt_way_points ADD COLUMN t_bearing real;
-			UPDATE tt_way_points SET t_bearing = 0;
-			UPDATE tt_way_points AS a
-				SET t_bearing = ST_Azimuth(a.t_the_geom, b.t_the_geom)
-				FROM tt_way_points AS b
-				WHERE b.c_id = a.c_id+1;
-			UPDATE tt_way_points AS a
-				SET t_bearing = b.t_bearing
-				FROM tt_way_points AS b
-				WHERE a.t_bearing = 0 AND b.c_id+1 = a.c_id;
-			RETURN QUERY SELECT t_the_geom, t_bearing, t_way_id FROM tt_way_points;
-		END;
-		$$
-		LANGUAGE 'plpgsql';";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error creating IBIS_prepareLineString function: ".pg_last_error($this->pg));
-		}
-
-		// Extract points (and bearing) from every LineString from table ".$ttid_dumpedways.", calculate bearing and insert into table ".$ttid_dumpedpoints."
-		//$query = "CREATE ".$this->pg_temp_qualifier." TABLE tt_prepared_linestring AS SELECT IBIS_prepareLineString(the_geom, id) FROM ".$ttid_dumpedways.";";
-		$query = "INSERT INTO ".$this->ttid_dumpedpoints." SELECT (IBIS_prepareLineString(t.the_geom, t.way_id)).* FROM ".$this->ttid_dumpedways." t;
-		CREATE INDEX the_geom_gist_idx ON ".$this->ttid_dumpedpoints." USING GIST ( the_geom );";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error executing IBIS_prepareLineString() on ".$this->ttid_dumpedways.": ".pg_last_error($this->pg));
-		}
-	*/
-
-		// Create (or update) PL/PgSQL function to extract information from linestrings needed to match track
-	/*	$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_matchedways."
-			(gid integer,
-			 osm_id bigint,
-			 cost numeric(16,8),
-			 c_id SERIAL
-			);";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error creating matchedways table: ".pg_last_error($this->pg));
-		}
-	*/
 
 		$query = "SELECT COUNT(*) FROM ".$this->ttid_nodes.";";
 		$result = pg_query($this->pg, $query);
@@ -181,7 +102,7 @@ class mapMatching {
 		} else {
 			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		$segment_cnt = 0;
 		do {
 			$segment_cnt++;
@@ -209,18 +130,7 @@ class mapMatching {
 		} else {
 			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
 		}
-		/*$query = "SELECT COUNT(*) FROM ".$this->ttid_dumpedpoints.";";
-		$result = pg_query($this->pg, $query);
-		if($result) {
-			if ($line = pg_fetch_array($result)) {
-				$return["rows_dumpedpoints"] = $line[0];
-			} else {
-				return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
-			}
-			pg_free_result($result);
-		} else {
-			return array("error" => "Error reading from temporary table in database: ".pg_last_error($this->pg));
-		}*/
+
 		$query = "SELECT COUNT(*) FROM ".$this->ttid_routedways.";";
 		$result = pg_query($this->pg, $query);
 		if($result) {
@@ -300,16 +210,13 @@ class mapMatching {
 					$nid = 0;
 					return array("error" => "Error finding nearest way from ways table: ".pg_last_error()." || ".$query1);
 				}
-				
+
 				// TODO: calcutate $dist ??
-				
-				//$query2 = "UPDATE ".$ttid_edges."  SET osm_id = ".$nid." WHERE c_id = ".$row["c_id"].";";
-				//$query2 = "INSERT INTO ".$this->ttid_matchedways." (osm_id, cost) VALUES (".$osm_id.", ".$row["cost"].");";
-				$query2 = "UPDATE ".$this->ttid_dumpedways." SET dist = ".$dist." WHERE osm_id = ".$osm_id.";";
-				// TODO: Update only if $dist is lower than dist in row
+
+				$query2 = "UPDATE ".$this->ttid_dumpedways." SET dist = ".$dist." WHERE osm_id = ".$osm_id." AND dist > ".$dist.";";
 				$result2 = pg_query($this->pg, $query2);
 				if(!$result2) {
-					return array("error" => "Error saving nearest way to ways table: ".pg_last_error());
+					return array("error" => "Error updating dist in dumpedways table: ".pg_last_error());
 				}
 				//if(pg_affected_rows($this->pg)==1) {
 				if(true) {
@@ -327,7 +234,6 @@ class mapMatching {
 		} else {
 			return array("error" => "Error selecting from ttid_nodes table for dist calculation. ".pg_last_error($this->pg));
 		}
-
 
 		// Find vertex id from nearest node of start node
 		$query = "SELECT ST_AsText(the_geom) AS the_geom FROM ".$this->ttid_nodes." ORDER BY c_id DESC LIMIT 1;";
@@ -360,7 +266,6 @@ class mapMatching {
 		$row = pg_fetch_assoc($result);
 		$end_id = $row["source"];
 		$return["end_id"] = $end_id;
-
 
 		// Djikstra (or A* ?) routing over ttid_dumpedways table
 		// Generate route
@@ -428,7 +333,7 @@ class mapMatching {
 			$last_target = intval($row["target"]);
 		}
 		pg_free_result($result);
-		
+
 		// Calc average cost from nodes for each way
 		// TODO: Implement more efficient in SQL
 		$query = "SELECT seq, osm_id FROM ".$this->ttid_routedways." WHERE osm_id IS NOT NULL;";
