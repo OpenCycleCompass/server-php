@@ -215,7 +215,7 @@ class processTracks {
 		}
 
 		// calculate speed: c_speed
-		$query = "UPDATE ".$ttid_edges." SET c_speed = c_dist/c_tdiff;";
+		$query = "UPDATE ".$ttid_edges." SET c_speed = c_dist/c_tdiff WHERE bad <> TRUE;";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			pg_free_result($result);
