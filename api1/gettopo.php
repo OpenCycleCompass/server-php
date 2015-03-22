@@ -41,7 +41,8 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 			dyncost.cost AS cost
 		FROM
 			ways
-				JOIN dyncost
+				JOIN (SELECT AVG(cost) AS cost, osm_id FROM dyncost WHERE cost IS NOT NULL GROUP BY osm_id
+						UNION SELECT AVG(reverse_cost) AS cost, osm_id FROM dyncost WHERE reverse_cost IS NOT NULL GROUP BY osm_id) dyncost
 					ON ways.osm_id = dyncost.osm_id
 		WHERE
 			ways.the_geom && ST_MakeEnvelope(" . $start_lon . ", " . $start_lat . ", " . $end_lon . ", " . $end_lat . ", 4326)
@@ -79,7 +80,7 @@ if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["sta
 		pg_free_result ( $result );
 	} else {
 		$out = json_encode ( array (
-				"error" => "Abfrage fehlgeschlagen."
+				"error" => "Abfrage fehlgeschlagen: ".pg_last_error($pgr)
 		) );
 	}
 } else {
