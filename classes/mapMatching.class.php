@@ -235,14 +235,14 @@ class mapMatching {
 		}
 
 		// drop temp tables
-	/*	$query = "DROP TABLE ".$this->ttid_dumpedways.";";
+		$query = "DROP TABLE ".$this->ttid_dumpedways.";";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			pg_free_result($result);
 		} else {
 			return array("error" => "Error dropping ".$this->ttid_dumpedways." table. ".pg_last_error($this->pg));
 		}
-	*/
+
 		$return["ttid"] = $this->ttid_routedways;
 		$return["success"] = true;
 		return $return;
@@ -269,7 +269,7 @@ class mapMatching {
 		} else {
 			return array("error" => "Error creating temporary table in database: ".pg_last_error($this->pg));
 		}
-		
+
 		// Set dist column in ttid_dumpedways to 100000 for every way
 		$query = "UPDATE ".$this->ttid_dumpedways." SET dist = 100000;";
 		$result = pg_query($this->pg, $query);
@@ -278,7 +278,7 @@ class mapMatching {
 		} else {
 			return array("error" => "Error setting dist to 100000  in ".$this->ttid_dumpedways.". ".pg_last_error($this->pg));
 		}
-		
+
 		// Set dist to low value (1...10) where ways are near to nodes in track segment
 		$query = "SELECT c_id, ST_AsText(the_geom) AS the_geom FROM ".$this->ttid_nodes.";";
 		$result = pg_query($this->pg, $query);
@@ -327,8 +327,8 @@ class mapMatching {
 		} else {
 			return array("error" => "Error selecting from ttid_nodes table for dist calculation. ".pg_last_error($this->pg));
 		}
-		
-		
+
+
 		// Find vertex id from nearest node of start node
 		$query = "SELECT ST_AsText(the_geom) AS the_geom FROM ".$this->ttid_nodes." ORDER BY c_id DESC LIMIT 1;";
 		$result = pg_query($this->pg, $query);
@@ -344,7 +344,7 @@ class mapMatching {
 		$row = pg_fetch_assoc($result);
 		$start_id = $row["source"];
 		$return["start_id"] = $start_id;
-		
+
 		// Find vertex id from nearest node of end node
 		$query = "SELECT ST_AsText(the_geom) AS the_geom FROM ".$this->ttid_nodes." ORDER BY c_id ASC LIMIT 1;";
 		$result = pg_query($this->pg, $query);
@@ -360,12 +360,12 @@ class mapMatching {
 		$row = pg_fetch_assoc($result);
 		$end_id = $row["source"];
 		$return["end_id"] = $end_id;
-		
-		
+
+
 		// Djikstra (or A* ?) routing over ttid_dumpedways table
 		// Generate route
 		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_routedways." AS
-		SELECT seq, id1 AS node, id2 AS edge, b.gid AS gid, b.osm_id AS osm_id, -1::numeric(16,8) AS cost
+		SELECT seq, id1 AS node, id2 AS edge, b.gid AS gid, b.osm_id AS osm_id, -1::numeric(16,8) AS cost, b.source AS source, b.target AS target
 		FROM pgr_dijkstra('SELECT gid AS id, source::integer, target::integer, dist AS cost
 		 FROM ".$this->ttid_dumpedways." ',"
 		  .$start_id.", ".$end_id.", false, false) a 
@@ -377,7 +377,57 @@ class mapMatching {
 		} else {
 			return array("error" => "Error routing in routedways table: ".pg_last_error()." || ".$query);
 		}
-		
+
+		// Set dist column in ttid_dumpedways to 100000 for every way
+		$query = "ALTER TABLE ".$this->ttid_routedways." ADD COLUMN reverse boolean;";
+		$result = pg_query($this->pg, $query);
+		if(!$result) {
+			return array("error" => "Error adding reverse column to routedways table. ".pg_last_error($this->pg));
+		}
+		pg_free_result($result);
+
+		// Set dist column in ttid_dumpedways to 100000 for every way
+		$query = "UPDATE ".$this->ttid_routedways." SET reverse = TRUE;";
+		$result = pg_query($this->pg, $query);
+		if(!$result) {
+			return array("error" => "Error setting reverse column to FALSE in routedways table. ".pg_last_error($this->pg));
+		}
+		pg_free_result($result);
+
+		$query = "SELECT seq, source, target FROM ".$this->ttid_routedways." ORDER BY seq ASC;";
+		$result = pg_query($this->pg, $query);
+		if(!$result) {
+			return array("error" => "Error reading from routedways table: ".pg_last_error());
+		}
+		$last_source= 0;
+		$last_target = 0;
+		while($row = pg_fetch_assoc($result)) {
+			if(intval($row["seq"]) != 0) {
+				if(($last_target == intval($row["source"])) || ($last_source == intval($row["source"]))) {
+					// Set reverse column in ttid_routedways to TRUE
+					$query2 = "UPDATE ".$this->ttid_routedways." SET reverse = FALSE WHERE seq = ".$row["seq"].";";
+					$result2 = pg_query($this->pg, $query2);
+					if(!$result2) {
+						return array("error" => "Error setting reverse column to TRUE where seq = ".$row["seq"]." in routedways table. ".pg_last_error($this->pg));
+					}
+					pg_free_result($result2);
+				}
+			}
+			if(intval($row["seq"]) == 1) {
+				if(($last_target == intval($row["source"])) || ($last_target == intval($row["target"]))) {
+					// Set reverse column in ttid_routedways to TRUE
+					$query2 = "UPDATE ".$this->ttid_routedways." SET reverse = FALSE WHERE seq = 0;";
+					$result2 = pg_query($this->pg, $query2);
+					if(!$result2) {
+						return array("error" => "Error setting reverse column to TRUE where seq = 0 (fix) in routedways table. ".pg_last_error($this->pg));
+					}
+					pg_free_result($result2);
+				}
+			}
+			$last_source = intval($row["source"]);
+			$last_target = intval($row["target"]);
+		}
+		pg_free_result($result);
 		
 		// Calc average cost from nodes for each way
 		// TODO: Implement more efficient in SQL

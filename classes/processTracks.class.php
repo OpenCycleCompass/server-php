@@ -5,7 +5,6 @@ include("mapMatching.class.php");
 class processTracks {
 	// variables
 	private $pg;
-	private $my;
 	private $nodes_prefix = "tt_nodes_";
 	private $edges_prefix = "tt_edges_";
 	private $dumpedways_prefix = "tt_dumpedways_";
@@ -13,9 +12,8 @@ class processTracks {
 	//private $pg_temp_qualifier = "TEMP";
 	private $pg_temp_qualifier = "";
 	
-	public function __construct($p_pg, $p_my) {
+	public function __construct($p_pg) {
 		$this->pg = $p_pg;
-		$this->my = $p_my;
 	}
 	
 	
@@ -477,11 +475,12 @@ class processTracks {
 
 
 
-		// copy cost from ".$this->pg_temp_qualifier." edges table to dyncost table
-		$query = "SELECT osm_id, cost FROM ".$ttid_matchedways." WHERE cost <> -1::numeric(16,8);";
+		// copy cost (forward) from ".$this->pg_temp_qualifier." edges table to dyncost table
+		$query = "SELECT osm_id, cost FROM ".$ttid_matchedways." WHERE cost <> -1::numeric(16,8) AND reverse = FALSE;";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
+				var_dump($row["reverse"]);
 				$query1 = "
 				INSERT INTO dyncost
 				(track_id, cost, osm_id)
@@ -516,13 +515,13 @@ class processTracks {
 
 	public function processAllTracks() {
 		// Check whether dyncost table is empty?
-		$query = "SELECT track_id FROM `ibis_server-php`.`tracks`;";
-		if($result = $this->my->query($query)) {
+		$query = "SELECT track_id FROM tracks;";
+		if($result = pg_query($this->pg, $query)) {
 			$tracknum = 0;
 			$error_cnt = 0;
 			$success_cnt = 0;
 			$res = array();
-			while($row = $result->fetch_assoc()) {
+			while($row = pg_fetch_assoc($result)) {
 				$res[$tracknum] = $this->prepareTrack($row["track_id"]);
 				$res[$tracknum]["track_id"] = $row["track_id"];
 				$res[$tracknum]["track_num"] = $tracknum;
@@ -535,6 +534,7 @@ class processTracks {
 			}
 			$res["success"] = $success_cnt." of ".$tracknum." tracks successfully processed.";
 			$res["error"] = $error_cnt." of ".$tracknum." tracks failed.";
+			pg_free_result($result);
 			return $res;
 		} else {
 			return array("error" => "No tracks found. ".pg_last_error($this->pg));
@@ -542,9 +542,10 @@ class processTracks {
 	}
 
 	public function processTrack($track_id) {
-		$query = "SELECT track_id FROM `ibis_server-php`.`tracks` WHERE track_id = '".$track_id."';";
-		$this->my->query($query);
-		if($this->my->affected_rows == 1) {
+		$query = "SELECT track_id FROM tracks WHERE track_id = '".$track_id."';";
+		$result = pg_query($this->pg, $query);
+		if($result && pg_affected_rows($result) == 1) {
+			pg_free_result($result);
 			return $this->prepareTrack($track_id);
 		} else {
 			return array("error" => "Track not found. ".pg_last_error($this->pg));
