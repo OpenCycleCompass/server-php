@@ -413,12 +413,8 @@ class processTracks {
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
-				var_dump($row["reverse"]);
-				$query1 = "
-				INSERT INTO dyncost
-				(track_id, cost, osm_id)
-				VALUES ('".$track_id."', ".$row["cost"].", ".$row["osm_id"].")
-				;";
+				$query1 = "INSERT INTO dyncost (track_id, cost, osm_id)
+				 VALUES ('".$track_id."', ".$row["cost"].", ".$row["osm_id"].");";
 				$result1 = pg_query($this->pg, $query1);
 				if($result1) {
 					pg_free_result($result1);
@@ -433,12 +429,8 @@ class processTracks {
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			while($row = pg_fetch_assoc($result)) {
-				var_dump($row["reverse"]);
-				$query1 = "
-				INSERT INTO dyncost
-				(track_id, reverse_cost, osm_id)
-				VALUES ('".$track_id."', ".$row["cost"].", ".$row["osm_id"].")
-				;";
+				$query1 = "INSERT INTO dyncost (track_id, reverse_cost, osm_id)
+				 VALUES ('".$track_id."', ".$row["cost"].", ".$row["osm_id"].");";
 				$result1 = pg_query($this->pg, $query1);
 				if($result1) {
 					pg_free_result($result1);
