@@ -10,11 +10,11 @@ if(!$pg) die(json_encode(array("error" => "Datenbankverbindung (PostgreSQL) nich
 
 
 include('../classes/processTracks.class.php');
-$processTracks = new processTracks($pg, $my);
+$processTracks = new processTracks($pg);
 
 
 if(isset($_GET['track_id'])) {
-	$out = $processTracks->processTrack($my->real_escape_string($_GET['track_id']));
+	$out = $processTracks->processTrack(pg_escape_string($pg, $_GET['track_id']));
 }
 else if(isset($_GET['all'])) {
 	$out = $processTracks->processAllTracks();

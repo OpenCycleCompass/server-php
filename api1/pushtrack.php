@@ -123,7 +123,7 @@ if( isset($_GET["newtrack"])
 			
 			pg_query($pgr, "INSERT INTO tracks "
 					."(user_token, track_id, created, length, duration, nodes, name, "
-						."`comment`, `public`, `hash`, `city`, `city_district`, `data_raw`) "
+						."comment, public, hash, city, city_district, data_raw) "
 					."VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "', "
 						."'" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', "
 						."'" . $comment . "', '" . $public . "', '" . $hash . "', '" . pg_escape_string($city) . "', "
