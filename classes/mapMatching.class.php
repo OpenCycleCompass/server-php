@@ -271,11 +271,10 @@ class mapMatching {
 		// Generate route
 		$query = "CREATE ".$this->pg_temp_qualifier." TABLE ".$this->ttid_routedways." AS
 		SELECT seq, id1 AS node, id2 AS edge, b.gid AS gid, b.osm_id AS osm_id, -1::numeric(16,8) AS cost, b.source AS source, b.target AS target
-		FROM pgr_dijkstra('SELECT gid AS id, source::integer, target::integer, dist AS cost
+		FROM pgr_dijkstra('SELECT gid AS id, source::integer, target::integer, (dist*length) AS cost
 		 FROM ".$this->ttid_dumpedways." ',"
 		  .$start_id.", ".$end_id.", false, false) a 
-		LEFT JOIN ".$this->ttid_dumpedways." b ON (a.id2 = b.gid);
-		--SELECT seq, gid, osm_id FROM ".$this->ttid_routedways." ORDER BY seq;";
+		LEFT JOIN ".$this->ttid_dumpedways." b ON (a.id2 = b.gid);";
 		$result = pg_query($this->pg, $query);
 		if($result) {
 			pg_free_result($result);
