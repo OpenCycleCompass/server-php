@@ -15,7 +15,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	} else {
 		$start_num = "0";
 	}
-	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
+	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks WHERE public = TRUE ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
 	$result = pg_query($pg, $query);
 	if($result && pg_num_rows($result) >= 1){
 		$data = array();
@@ -49,7 +49,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 } else if(isset($_GET["tracknum"]) && $_GET["tracknum"]=="tracknum") {
 	// Return number of tracks (scalar)
 
-	$query = "SELECT count(id) FROM tracks;";
+	$query = "SELECT count(id) FROM tracks WHERE public = TRUE;";
 	$result = pg_query($pg, $query);
 	if(pg_num_rows($result) >= 1){
 		$row = pg_fetch_array($result);
