@@ -3,9 +3,13 @@ header('Content-Type: text/html; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 // Load config (for db)
 include('config.php');
+
+$pg = pg_connect($pgr_connectstr);
+if(!$pg) die(json_encode(array("error" => "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error())));
+
 // Start session
 session_start();
-// Process input
+
 if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (isset($_POST["password"]) || isset($_GET["password"])) && (!empty($_POST["password"]) || !empty($_GET["password"])) ) {
 	if(isset($_POST["password"])) {
 		$pw = pg_escape_string($pg, $_POST["password"]);
@@ -13,7 +17,7 @@ if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (is
 		$pw = pg_escape_string($pg, $_GET["password"]);
 	}
 	$success = false;
-	$query = "SELECT password FROM admin_users WHERE name = '".$my->real_escape_string($_GET["user"])."';";
+	$query = "SELECT password FROM admin_users WHERE name = '".pg_escape_string($pg, $_GET["user"])."';";
 	$result = pg_query($pg, $query);
 	if($result && pg_num_rows($result) >= 1){
 		// possible multiple users with same name but different password -> multiple rows in MySQL db
