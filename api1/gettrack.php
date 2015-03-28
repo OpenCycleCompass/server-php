@@ -7,6 +7,8 @@ include ('functions.php');
 $pg = pg_connect($pgr_connectstr);
 if(!$pg)  die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 
+session_start();
+
 if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	// Return list of tracks (name and track_id) 
 
@@ -15,7 +17,11 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	} else {
 		$start_num = "0";
 	}
-	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks WHERE public = TRUE ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
+	$only_public = "";
+	if(!isset($_SESSION["auth_user"])) {
+		$only_public = "WHERE public = TRUE ";
+	}
+	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks ".$only_public."ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
 	$result = pg_query($pg, $query);
 	if($result && pg_num_rows($result) >= 1){
 		$data = array();
@@ -48,8 +54,11 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 	pg_free_result($result);
 } else if(isset($_GET["tracknum"]) && $_GET["tracknum"]=="tracknum") {
 	// Return number of tracks (scalar)
-
-	$query = "SELECT count(id) FROM tracks WHERE public = TRUE;";
+	$only_public = "";
+	if(!isset($_SESSION["auth_user"])) {
+		$only_public = "WHERE public = TRUE";
+	}
+	$query = "SELECT count(id) FROM tracks ".$only_public.";";
 	$result = pg_query($pg, $query);
 	if(pg_num_rows($result) >= 1){
 		$row = pg_fetch_array($result);
