@@ -23,7 +23,7 @@ if(isset($_GET["newtoken"])) {
 	// Return/echo token with created and expiry timestamp as json
 	$out = json_encode(array('token' => $token, 'created' => $created, 'expiry' => $expiry));
 }
-if(isset($_GET["verify"]) && isset($_GET["token"])) {
+else if(isset($_GET["verify"]) && isset($_GET["token"])) {
 	$out = json_encode(array('valid' => verify_token($_GET["token"], $pg)));
 }
 else {

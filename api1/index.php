@@ -5,13 +5,6 @@ include('config.php');
 
 $pg = pg_connect($pg_connectstr) or die("Datenbankverbindung (PostgreSQL) nicht möglich.".pg_last_error());
 
-// MySQL Example:
-// $my->real_escape_string($_POST["text"]);
-// $query_text = "INSERT INTO `db`.`table` (`id`, `NAME`) VALUES (NULL, '".$whatever."')";
-// result = $my->query($query_text);
-//
-// result->close();
-
 // PostgreSQL Example:
 // Eine SQL-Abfrge ausführen
 //$query = 'SELECT * FROM authors';

@@ -9,7 +9,7 @@ if(!$pg)  die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error(
 
 session_start();
 
-if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
+if(isset($_GET["tracklist"])) {
 	// Return list of tracks (name and track_id) 
 
 	if(isset($_GET["num"])){
@@ -52,7 +52,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 		) );
 	}
 	pg_free_result($result);
-} else if(isset($_GET["tracknum"]) && $_GET["tracknum"]=="tracknum") {
+} else if(isset($_GET["tracknum"])) {
 	// Return number of tracks (scalar)
 	$only_public = "";
 	if(!isset($_SESSION["auth_user"])) {
@@ -70,7 +70,7 @@ if(isset($_GET["tracklist"]) && $_GET["tracklist"]=="tracklist") {
 		) );
 	}
 	pg_free_result($result);
-} else if(isset($_GET["gettrack"]) && $_GET["gettrack"]=="gettrack" && isset($_GET["track_id"])){
+} else if(isset($_GET["gettrack"]) && isset($_GET["track_id"])){
 	// Return point of track $_GET["track_id"]
 	$query = "SELECT lat, lon, alt, time, speed FROM rawdata_server_php WHERE track_id = '" . pg_escape_string($pg, $_GET["track_id"]) . "';";
 	$result = pg_query($query);

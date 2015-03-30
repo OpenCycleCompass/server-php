@@ -10,7 +10,7 @@ if(!$pg) die(json_encode(array("error" => "Datenbankverbindung (PostgreSQL) nich
 // Start session
 session_start();
 
-if(isset($_GET["login"]) && isset($_GET["user"]) && !empty($_GET["user"]) && (isset($_POST["password"]) || isset($_GET["password"])) && (!empty($_POST["password"]) || !empty($_GET["password"])) ) {
+if(isset($_GET["login"]) && (isset($_POST["user"]) || isset($_GET["user"])) && (!empty($_POST["user"]) || !empty($_GET["user"])) && (isset($_POST["password"]) || isset($_GET["password"])) && (!empty($_POST["password"]) || !empty($_GET["password"])) ) {
 	if(isset($_POST["password"])) {
 		$pw = pg_escape_string($pg, $_POST["password"]);
 	} else {

@@ -10,7 +10,6 @@ if(!$pgr)
 	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
 
 if( isset($_GET["newtrack"])
-		&& ($_GET['newtrack'] == "newtrack")
 		&& isset($_GET['user_token'])
 		&& isset($_GET['length'])
 		&& isset($_GET['duration'])

@@ -15,6 +15,9 @@ if(isset($_GET["getroute"])
 	&&   ( (isset($_GET["end_lat"]  ) && isset($_GET["end_lon"])  ) || isset($_GET["end"]  ) ) )) {
 	// return to route as arrays of LatLngs
 
+	$start_info = array();
+	$end_info = array();
+
 	if(isset($_GET["start_lat"])) {
 		$start_lat = floatval($_GET["start_lat"]);
 		$start_lon = floatval($_GET["start_lon"]);
@@ -25,6 +28,7 @@ if(isset($_GET["getroute"])
 		}
 		$start_lat = $start["lat"];
 		$start_lon = $start["lon"];
+		$start_info["geocoding"] = $start;
 	}
 
 	if(isset($_GET["end_lat"])) {
@@ -37,6 +41,7 @@ if(isset($_GET["getroute"])
 		}
 		$end_lat = $end["lat"];
 		$end_lon = $end["lon"];
+		$end_info["geocoding"] = $end;
 	}
 
 	// Start point
@@ -54,7 +59,10 @@ if(isset($_GET["getroute"])
 	pg_free_result($result);
 	$end_id = $row[0];
 	//echo "End: ".$end_id;
-	
+
+	$start_info["id"] = $start_id;
+	$end_info["id"] = $end_id;
+
 	if(isset($_GET["profile"])) {
 		$profile = pg_escape_string($pg, $_GET["profile"]);
 		if(!(existsProfile($profile, $pg)===true)) {
@@ -167,6 +175,8 @@ if(isset($_GET["getroute"])
 		}
 
 		$json_obj = array();
+		$json_obj["start"] = $start_info;
+		$json_obj["end"] = $end_info;
 		$json_obj["points"] = $data_single_id;
 		$json_obj["numpoints"] = $new_id;
 		
@@ -176,8 +186,8 @@ if(isset($_GET["getroute"])
 		if(!$result) {
 			die("<pre>".pg_last_error());
 		} */
+
 		// Calulate exact Distance:
-		//$query = "SELECT SUM(length)*1000 AS distance FROM  ".$temp_table.";";
 		$query = "ALTER TABLE ".$temp_table." ADD COLUMN c_dist numeric(16,8);
 		UPDATE ".$temp_table." SET c_dist = ST_Length_Spheroid(the_geom, 'SPHEROID[\"WGS 84\",6378137,298.257223563]');
 		SELECT SUM(c_dist) AS exact_distance, SUM(length)*1000 AS distance FROM  ".$temp_table.";";
@@ -196,11 +206,10 @@ if(isset($_GET["getroute"])
 				"error" => "Keine Route gefunden."
 		) );
 	}
-} else if(isset($_GET["getid"]) && $_GET["getid"]=="getid" && isset($_GET["lat"]) && isset($_GET["lon"])){
+} else if(isset($_GET["getid"]) && isset($_GET["lat"]) && isset($_GET["lon"])){
 	$lat = floatval($_GET["lat"]);
 	$lon = floatval($_GET["lon"]);
 	
-	// Start point
 	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $lon . " " . $lat . ")',4326) LIMIT 1";
 	$result = pg_query($pg, $query);
 	if($result){
@@ -209,14 +218,10 @@ if(isset($_GET["getroute"])
 		pg_free_result($result);
 		$out = json_encode(array("id" => $id, "query" => $query));
 	} else {
-		$out = json_encode ( array (
-			"error" => "Keine ID gefunden."
-		) );
+		$out = json_encode(array("error" => "Keine ID gefunden."));
 	}
 } else {
-	$out = json_encode ( array (
-			"error" => "Keine oder falsche Eingabe." 
-	) );
+	$out = json_encode(array("error" => "Keine oder falsche Eingabe."));
 }
 
 echo($out);

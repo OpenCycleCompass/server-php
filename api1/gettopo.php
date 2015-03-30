@@ -7,7 +7,7 @@ include('functions.php');
 $pgr = pg_connect($pgr_connectstr);
 if(!$pgr) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
 
-if(isset($_GET["getedges"]) && $_GET["getedges"]=="getedges" && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static") || ($_GET["cost"]=="dynamic")) ){
+if(isset($_GET["getedges"]) && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static") || ($_GET["cost"]=="dynamic")) ){
 	$start_lat = floatval($_GET["start_lat"]);
 	$start_lon = floatval($_GET["start_lon"]);
 	$end_lat = floatval($_GET["end_lat"]);
