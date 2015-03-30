@@ -1,11 +1,11 @@
 <?php
 function verify_token($token, $pg) {
-	$result = pg_query($pg, "SELECT id FROM tokens WHERE token = '".$token."'");
+	$result = pg_query($pg, "SELECT id FROM tokens WHERE token = '".pg_escape_string($pg, $token)."'");
 	if(pg_affected_rows($result) == 1) {
 		pg_free_result($result);
-		return 1;
+		return true;
 	} else {
-		return 0;
+		return false;
 	}
 }
 
