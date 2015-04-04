@@ -26,7 +26,7 @@ if(isset($_GET["login"]) && (isset($_POST["user"]) || isset($_GET["user"])) && (
 				$success = true;
 			}
 		}
-		pg_free_result($pg);
+		pg_free_result($result);
 	}
 	if($success) {
 		$_SESSION["auth_user"] = "ok";
@@ -45,6 +45,7 @@ if(isset($_GET["login"]) && (isset($_POST["user"]) || isset($_GET["user"])) && (
 	$result = pg_query($pg, $query);
 	if($result) {
 		$out = json_encode(array("success" => "User successfully created"));
+		pg_free_result($result);
 	} else {
 		$out = json_encode(array("error" => "User not created - Database problem :("));
 	}
