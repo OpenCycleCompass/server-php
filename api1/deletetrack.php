@@ -20,7 +20,7 @@ if(isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok") {
 				$row = pg_fetch_assoc($result);
 				if($row["count"]=="1") {
 					// Delete track from MySQL table
-					$result2 = pg_query($pg, "DELETE FROM tracks WHERE track_id = '".pg_escape_string($pg, $track_id)."' LIMIT 1;");
+					$result2 = pg_query($pg, "DELETE FROM tracks WHERE track_id = '".pg_escape_string($pg, $track_id)."';");
 					if($result2 && (pg_affected_rows($result2)==1)) {
 						// Delete coordinates from PgSQL database:
 						$query3 = "
@@ -41,12 +41,12 @@ if(isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok") {
 						$success_counter++;
 						pg_free_result($result2);
 					} else{
-						$out = json_encode(array("error" => "track ".$track_id." was not deleted"));
+						$out = json_encode(array("error" => "track ".$track_id." was not deleted: ".pg_last_error($pg)));
 						echo($out);
 						exit;
 					}
 				} else {
-					$out = json_encode(array("error" => "track ".$track_id." does not exist"));
+					$out = json_encode(array("error" => "track ".$track_id." does not exist: ".pg_last_error($pg)));
 					echo($out);
 					exit;
 				}
