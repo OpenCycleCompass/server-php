@@ -681,13 +681,21 @@
 
 		$( "#profile_select_form" ).submit(function( event ) {
 			// Check if user is authenticated
-			// TODO
-			// Load profile editor
-			$.getJSON("profile_content.php?profile="+$("#profile_select").val(), function(json) {
-				if(json.content) {
-					$("#profile_content").html(json.content);
-				} else {
-					alert("Cannot get profile editor");
+			$.getJSON("api1/login.php?status", function(json) {
+				if(json.status == "ok") {
+					// Load profile editor
+					$.getJSON("profile_content.php?profile="+$("#profile_select").val(), function(json) {
+						if(json.content) {
+							$("#profile_content").html(json.content);
+						} else {
+							alert("Cannot get profile editor");
+						}
+					});
+				} else if (json.status == "bad") {
+					alert("Please sign in");
+				}
+				else {
+					alert("Unknown error (network connection?)");
 				}
 			});
 		});
