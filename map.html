@@ -30,6 +30,7 @@
 			<li><a href="#showtopo_pane" role="tab"><i class="fa fa-cloud"></i></a></li>
 			<li><a href="#admin_pane" role="tab"><i class="fa fa-cogs"></i></a></li>
 			<li><a href="#profile_pane" role="tab"><i class="fa fa-area-chart"></i></a></li>
+			<li><a href="#login_pane" role="tab"><i class="fa fa-sign-in"></i></a></li>
 			<li><a href="#cleanmap_pane" role="tab"><i class="fa fa-eraser"></i></a></li>
 		</ul>
 		<!-- Tab pane(s) -->
@@ -138,6 +139,29 @@
 				</div>
 			</div>
 
+			<div class="sidebar-pane" id="login_pane">
+				<h1>iBis Login</h1>
+				<div id="login_div">
+					<form id="login_form" onsubmit="loginUser()">
+						<label for="user_user">Admin-Benutzername:</label>
+						<br />
+						<input type="text" value="" id="login_user">
+						<br />
+						<label for="user_pw">Passwort</label>
+						<br />
+						<input type="password" value="" id="login_pw">
+						<br />
+						<input type="submit" value="Anmelden">
+						<br />
+					</form>
+				</div>
+				<div id="logout_div" style="display: none">
+					<form id="logout_form" onsubmit="logoutUser()">
+						<input type="submit" value="Abmelden">
+					</form>
+				</div>
+			</div>
+
 			<div class="sidebar-pane" id="cleanmap_pane">
 				<h1>iBis Overlays</h1>
 				<h3>Alle Overlays entfernen</h3>
@@ -205,7 +229,7 @@
 				} else if(json.success) {
 					alert("Erfolg: "+json.success);
 				} else {
-					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+					alert("Unknown error");
 				}
 				
 				// refresh admin pane:
@@ -219,11 +243,12 @@
 				if(json.error){
 					alert("Fehler: "+json.error);
 				} else if(json.success) {
-					//alert("Erfolg: "+json.success);
+					$("#login_div").hide();
+					$("#logout_div").show();
 					// refresh admin pane:
 					adminContentDelete();
 				} else {
-					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+					alert("Unknown error");
 				}
 			});
 		}
@@ -233,10 +258,12 @@
 				if(json.error){
 					alert("Fehler: "+json.error);
 				} else if(json.success) {
+					$("#logout_div").hide();
+					$("#login_div").show();
 					// refresh admin pane:
 					adminContentLogin();
 				} else {
-					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+					alert("Unknown error");
 				}
 			});
 		}
