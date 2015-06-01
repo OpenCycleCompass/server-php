@@ -11,54 +11,60 @@ if(!$pg) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error()
 $geocoding = new Geocoding();
 
 if(isset($_GET["getroute"])
-	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"])) || isset($_GET["start"]) ) 
-	&&   ( (isset($_GET["end_lat"]  ) && isset($_GET["end_lon"])  ) || isset($_GET["end"]  ) ) )) {
+	&& ( ( (isset($_GET["start_lat"]) && isset($_GET["start_lon"])) || isset($_GET["start"]) || isset($_GET["start_osm"]) )
+	&&   ( (isset($_GET["end_lat"]  ) && isset($_GET["end_lon"])  ) || isset($_GET["end"])   || isset($_GET["end_osm"]  ) ) )) {
 	// return to route as arrays of LatLngs
 
 	$start_info = array();
 	$end_info = array();
 
-	if(isset($_GET["start_lat"])) {
-		$start_lat = floatval($_GET["start_lat"]);
-		$start_lon = floatval($_GET["start_lon"]);
-	} else {
-		$start = $geocoding->getCoordByAddr($_GET["start"]);
-		if(isset($start["error"])) {
-			die(json_encode(array("error" => "Start-Adresse nicht gefunden.", "addinfo_start" => $start)));
-		}
-		$start_lat = $start["lat"];
-		$start_lon = $start["lon"];
-		$start_info["geocoding"] = $start;
-	}
-
-	if(isset($_GET["end_lat"])) {
-		$end_lat = floatval($_GET["end_lat"]);
-		$end_lon = floatval($_GET["end_lon"]);
-	} else {
-		$end = $geocoding->getCoordByAddr($_GET["end"]);
-		if(isset($end["error"])) {
-			die(json_encode(array("error" => "Ziel-Adresse nicht gefunden.", "addinfo_end" => $end)));
-		}
-		$end_lat = $end["lat"];
-		$end_lon = $end["lon"];
-		$end_info["geocoding"] = $end;
-	}
-
 	// Start point
-	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
-	$result = pg_query($pg, $query);
-	$row = pg_fetch_row($result);
-	pg_free_result($result);
-	$start_id = $row[0];
-	//echo "Start: ".$start_id;
+	if(isset($_GET["start_osm"])) {
+		// TODO: get way_id near supplied osm_id
+	}
+	else {
+		if(isset($_GET["start_lat"])) {
+			$start_lat = floatval($_GET["start_lat"]);
+			$start_lon = floatval($_GET["start_lon"]);
+		} else if(isset($_GET["start"])) {
+			$start = $geocoding->getCoordByAddr($_GET["start"]);
+			if(isset($start["error"])) {
+				die(json_encode(array("error" => "Start-Adresse nicht gefunden.", "addinfo_start" => $start)));
+			}
+			$start_lat = $start["lat"];
+			$start_lon = $start["lon"];
+			$start_info["geocoding"] = $start;
+		}
+		$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $start_lon . " " . $start_lat . ")',4326) LIMIT 1";
+		$result = pg_query($pg, $query);
+		$row = pg_fetch_row($result);
+		pg_free_result($result);
+		$start_id = $row[0];
+	}
 	
 	// End point
-	$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $end_lon . " " . $end_lat . ")',4326) LIMIT 1";
-	$result = pg_query($pg, $query);
-	$row = pg_fetch_row($result);
-	pg_free_result($result);
-	$end_id = $row[0];
-	//echo "End: ".$end_id;
+	if(isset($_GET["end_osm"])) {
+		// TODO: get way_id near supplied osm_id
+	}
+	else {
+		if(isset($_GET["end_lat"])) {
+			$end_lat = floatval($_GET["end_lat"]);
+			$end_lon = floatval($_GET["end_lon"]);
+		} else if(isset($_GET["end"])) {
+			$end = $geocoding->getCoordByAddr($_GET["end"]);
+			if(isset($end["error"])) {
+				die(json_encode(array("error" => "Ziel-Adresse nicht gefunden.", "addinfo_end" => $end)));
+			}
+			$end_lat = $end["lat"];
+			$end_lon = $end["lon"];
+			$end_info["geocoding"] = $end;
+		}
+		$query = "SELECT id::integer FROM ways_vertices_pgr ORDER BY the_geom <-> ST_GeomFromText('POINT(" . $end_lon . " " . $end_lat . ")',4326) LIMIT 1";
+		$result = pg_query($pg, $query);
+		$row = pg_fetch_row($result);
+		pg_free_result($result);
+		$end_id = $row[0];
+	}
 
 	$start_info["id"] = $start_id;
 	$end_info["id"] = $end_id;
@@ -89,8 +95,7 @@ if(isset($_GET["getroute"])
 	UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE edge = d.gid;
 	--UPDATE ".$temp_table." SET dyncost = d.cost FROM dyncost d WHERE osm_id = d.osm_id;
 	--UPDATE ".$temp_table." SET dyncost = d.cost FROM (SELECT AVG(cost), osm_id FROM dyncost GROUP BY osm_id) d WHERE osm_id = d.osm_id; -- ???
-	SELECT geom_text, dyncost FROM  ".$temp_table." ORDER BY seq;
-	";
+	SELECT geom_text, dyncost FROM  ".$temp_table." ORDER BY seq;";
 	
 	/*$query = "CREATE TEMP TABLE ".$temp_table." AS
 	SELECT seq, id1 AS node, id2 AS edge, cost, ST_AsText(b.the_geom) AS geom_text, b.the_geom AS the_geom, b.length FROM pgr_dijkstra('
