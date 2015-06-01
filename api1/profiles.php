@@ -14,10 +14,10 @@ session_start();
 function getProfileEditor($profile, $pg) {
 	$query = "SELECT id, name, cost FROM classes WHERE profile = '".pg_escape_string($profile)."' AND id <> 99999 ORDER BY name ASC;";
 	$result = pg_query($pg, $query);
-	$trs = "";
+	$entries = array();
 	if(pg_num_rows($result) >= 1){
 		while($row = pg_fetch_assoc($result)){
-			$trs .= '<tr><td>' . $row["name"] . '</td><td><input class="cost" type="text" name="' . $row["name"] . '"  value="' . floatval($row["cost"]) . '" id="' . $row["id"] . '"></td></tr>' . "\n";
+			$entries[] = array("name" => $row["name"], "cost" => floatval($row["cost"]), "id" => intval($row["id"]));
 		}
 		pg_free_result($result);
 	}
@@ -36,22 +36,16 @@ function getProfileEditor($profile, $pg) {
 	else {
 		return json_encode(array("error" => "Profile not found or corrupted.".pg_last_error($pg)));
 	}
-	return json_encode(array("content" => '
-	<h3>Profil: '.$profile.'</h3>
-	<form action="#" methode="post" id="profile_update_form" onsubmit="updateProfile(event)"><table>
-		'.$trs.'
-		<tr><td colspan="2">&nbsp;</td></tr>
-		<tr><td>Anteil der Dynamischen Kosten</td><td><input class="cost" type="text" name="amount_dyncost"  value="'.$amount_dyncost.'" id="amount_dyncost"></td></tr>
-		<tr><td></td><td><input type="submit" value="Ändern"></td></tr>
-		<input type="hidden" name="profile" id="profile_profile" value="'.$profile.'">
-	</table></form>'));
+	return array("name" => $profile,
+		"entries" => $entries,
+		"amount_dyncost" => $amount_dyncost);
 }
 
 // Process input
 if(isset($_SESSION["auth_user"]) && $_SESSION["auth_user"]=="ok" && isset($_GET["profile"])) {
 	$exists = existsProfile($_GET["profile"], $pg);
 	if($exists===true) {
-		$out = getProfileEditor($_GET["profile"], $pg);
+		$out = json_encode(getProfileEditor($_GET["profile"], $pg));
 	}
 	else {
 		$out = json_encode(array("error" => "Profile unknown: ".$exists));

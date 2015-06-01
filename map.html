@@ -684,9 +684,25 @@
 			$.getJSON("api1/login.php?status", function(json) {
 				if(json.status == "ok") {
 					// Load profile editor
-					$.getJSON("profile_content.php?profile="+$("#profile_select").val(), function(json) {
-						if(json.content) {
-							$("#profile_content").html(json.content);
+					$.getJSON("api1/profiles.php?profile="+$("#profile_select").val(), function(json) {
+						if(json.name && json.entries) {
+							$("#profile_content").html("<h3>Profil: " + json.name + "</h3>"
+							+ '<form id="profile_update_form"><table id="profile_update_form_table">'
+							+ "</table></form>");
+							$("#profile_update_form")
+								.attr("action", "#")
+								.attr("onsubmit", "updateProfile(event)")
+								.attr("methode", "post");
+							$.each(json.entries, function(index, entry){
+								$("#profile_update_form_table").append(
+									'<tr><td>' + entry.name + '</td>'
+									+'<td><input class="cost" type="text" name="' + entry.name + '" value="' + entry.cost + '" id="' + entry.id + '">'
+									+'</td></tr>');
+							});
+							$("#profile_update_form_table").append('<tr><td colspan="2">&nbsp;</td></tr>'
+								+'<tr><td>Anteil der Dynamischen Kosten</td><td><input class="cost" type="text" name="amount_dyncost"  value="' + json.amount_dyncost + '" id="amount_dyncost"></td></tr>'
+								+'<tr><td></td><td><input type="submit" value="Ändern"></td></tr>'
+								+'<input type="hidden" name="profile" id="profile_profile" value="' + json.name +'">');
 						} else {
 							alert("Cannot get profile editor");
 						}
@@ -707,11 +723,11 @@
 			});
 			$.getJSON(url, function(json) {
 				if(json.error){
-					alert("Fehler: "+json.error);
+					alert("Error: "+json.error);
 				} else if(json.success) {
-					alert("Erfolg: "+json.success);
+					alert("Success: "+json.success);
 				} else {
-					alert("Unbekannter Ausnahmefehler ... Aaaaaahh!");
+					alert("Unknown error");
 				}
 			});
 			// Prevent reload:

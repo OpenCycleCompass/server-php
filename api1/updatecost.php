@@ -42,7 +42,10 @@ if(isset($_GET["profile"]) && isset($_SESSION["auth_user"]) && $_SESSION["auth_u
 		$result = pg_query($pg, $query2);
 		//echo($query2);
 		if($result) {
-			$out = json_encode(array("success" => "Profile ".$_GET["profile"]." successfully updated. (".$error_cnt." Fehler/".$error_str.")"));
+			if(!empty($error_str)) {
+				$error_str = " / " . $error_str;
+			}
+			$out = json_encode(array("success" => "Profile ".$_GET["profile"]." successfully updated. (".$error_cnt." Fehler".$error_str.")"));
 		}
 		else {
 			die(json_encode(array("error" => "Profile ".$_GET["profile"]." was not updated. ".pg_last_error($pg))));
