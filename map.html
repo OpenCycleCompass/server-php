@@ -118,24 +118,48 @@
 			
 			<div class="sidebar-pane" id="admin_pane">
 				<h1>iBis Administration</h1>
-				<div id="admin_content">
-				<!-- dynamic content with JS -->
+				<div id="admin_content_authuser" style="display: none">
+					<form id="admin_delete_form" onsubmit="deleteTracks()" action="#">
+						<label for="admin_delete_select">Track(s) löschen</label>
+						<br />
+						<select id="admin_delete_select" multiple="multiple" size="25" style="overflow: hidden; width: 100%;">
+
+						</select>
+						<br />
+						<input type="submit" value="Tracks Löschen">
+					</form>
+					<br />
+					<form id="admin_delete_num_form">
+						<label for="admin_delete_num">Track Auswahl:</label>
+						<p id="admin_delete_num_p">Es sind unbekannt viele Tracks vorhanden</p>
+						<select id="admin_delete_num">
+							<option value="0">0..24</option>
+						</select>
+						<input type="submit" value="Wechseln">
+					</form>
+				</div>
+				<div id="admin_content_noauth">
+					<h3>Bitte zuerst Anmelden</h3>
 				</div>
 			</div>
 
 			<div class="sidebar-pane" id="profile_pane">
 				<h1>iBis Routing Profile</h1>
-				<p>(<i>Authentifizierung ist zur Bearbeitung erforderlich.</i>)</p>
-				<form id="profile_select_form">
-					<label for="profile_select">Profil</label>
-					<select id="profile_select">
+				<div id="profile_content_authuser" style="display: none">
+					<form id="profile_select_form">
+						<label for="profile_select">Profil</label>
+						<select id="profile_select">
 
-					</select>
-					<input type="submit" value="Bearbeiten">
-				</form>
-				<hr />
-				<div id="profile_content">
-				<!-- dynamic content with JS -->
+						</select>
+						<input type="submit" value="Bearbeiten">
+					</form>
+					<hr />
+					<div id="profile_content">
+					<!-- dynamic content with JS -->
+					</div>
+				</div>
+				<div id="profile_content_noauth">
+					<h3>Bitte zuerst Anmelden</h3>
 				</div>
 			</div>
 
@@ -182,41 +206,41 @@
 		$.ajaxSetup({'async': false});
 
 		$( document ).ready( function() {
-			setTrackSelectOptions($("#track_select_num").val())
+			setTrackSelectOptions($("#track_select_num").val());
 
 			// Set profile select options
 			setProfileOptions();
 
-			// admin pane:
+			// admin
 			$.getJSON("api1/login.php?status", function(json) {
-				if(json.status=="bad") {
-					adminContentLogin();
+				if(json.status=="ok") {
+					postLogin();
 				} else {
-					adminContentDelete();
+					postLogout();
 				}
 			});
 			
 		});
 
-		function adminContentLogin() {
-			$.getJSON("admin_content.php?content_get=login", function(json) {
-				if(json.content) {
-					$("#admin_content").html(json.content);
-				} else {
-					alert("Cannot get admin content");
-				}
-			});
+		function postLogin() {
+			$("#login_div").hide();
+			$("#logout_div").show();
+			$("#admin_content_noauth").hide();
+			$("#admin_content_authuser").show();
+			$("#profile_content_noauth").hide();
+			$("#profile_content_authuser").show();
+			setAdminDeleteOptions($("#admin_delete_num").val());
 		}
-		function adminContentDelete() {
-			$.getJSON("admin_content.php?content_get=delete", function(json) {
-				if(json.content) {
-					$("#admin_content").html(json.content);
-				} else {
-					alert("Cannot get admin content");
-				}
-			});
+
+		function postLogout() {
+			$("#logout_div").hide();
+			$("#login_div").show();
+			$("#admin_content_authuser").hide();
+			$("#admin_content_noauth").show();
+			$("#profile_content_authuser").hide();
+			$("#profile_content_noauth").show();
 		}
-		
+
 		function deleteTracks() {
 			var url = "api1/deletetrack.php?deletetrack&track_ids=";
 			$('#admin_delete_select option:selected').each(function() {
@@ -232,8 +256,9 @@
 					alert("Unknown error");
 				}
 				
-				// refresh admin pane:
-				adminContentDelete();
+				// refresh admin and tracks pane
+				setAdminDeleteOptions($("#admin_delete_num").val());
+				setTrackSelectOptions($("#track_select_num").val());
 			});
 		}
 		
@@ -241,13 +266,12 @@
 			var url = "api1/login.php?login&user="+$("#login_user").val()+"&password="+$("#login_pw").val();
 			$.getJSON(url, function(json) {
 				if(json.error){
+					postLogout();
 					alert("Fehler: "+json.error);
 				} else if(json.success) {
-					$("#login_div").hide();
-					$("#logout_div").show();
-					// refresh admin pane:
-					adminContentDelete();
+					postLogin();
 				} else {
+					postLogout();
 					alert("Unknown error");
 				}
 			});
@@ -256,20 +280,23 @@
 		function logoutUser() {
 			$.getJSON("api1/login.php?signout", function(json) {
 				if(json.error){
+					postLogout();
 					alert("Fehler: "+json.error);
 				} else if(json.success) {
-					$("#logout_div").hide();
-					$("#login_div").show();
-					// refresh admin pane:
-					adminContentLogin();
+					postLogout();
 				} else {
+					postLogout();
 					alert("Unknown error");
 				}
 			});
 		}
-		
+
 		$("#track_select_num_form").submit( function () {
 			setTrackSelectOptions($("#track_select_num").val());
+		});
+
+		$("#admin_delete_num_form").submit( function () {
+			setAdminDeleteOptions($("#admin_delete_num").val());
 		});
 
 		function setTrackSelectOptions(num) {
@@ -293,6 +320,30 @@
 				$('#track_select_num').find("option").remove().end()
 				.append(options);
 				$("#track_select_num").val(s_num);
+			});
+		}
+
+		function setAdminDeleteOptions(num) {
+			var options_uri = "api1/gettrack.php?tracklist=tracklist&num=" + num;
+			$.getJSON(options_uri, function (json) {
+				var options = "";
+				for (var i = 0; i< json.length; i++) {
+					options += "<option value=\"" + json[i].track_id + "\">" + json[i].name + "</option>";
+				}
+				$('#admin_delete_select').find("option").remove().end()
+				.append(options);
+			});
+			var num_uri = "api1/gettrack.php?tracknum=tracknum";
+			$.getJSON(num_uri, function (json) {
+				$('#admin_delete_num_p').replaceWith("<p id=\"admin_delete_num_p\">Es sind " + json.num + " Tracks vorhanden.</p>");
+				var options = "";
+				for (var i = 0; i < json.num; i = i+25) {
+					options += "<option value=\"" + i + "\">" + i + "..." + (Math.min((i+24),json.num)) + "</option>";
+				}
+				var s_num = $("#admin_delete_num").val();
+				$('#admin_delete_num').find("option").remove().end()
+				.append(options);
+				$("#admin_delete_num").val(s_num);
 			});
 		}
 
@@ -597,7 +648,7 @@
 				sidebar.close();
 			}
 		});
-		
+
 		$( "#generate_route" ).submit(function( event ) {
 			event.preventDefault();
 			// Remove all polylines
@@ -710,7 +761,7 @@
 			// Check if user is authenticated
 			$.getJSON("api1/login.php?status", function(json) {
 				if(json.status == "ok") {
-					// Load profile editor
+					// Load profile
 					$.getJSON("api1/profiles.php?profile="+$("#profile_select").val(), function(json) {
 						if(json.name && json.entries) {
 							$("#profile_content").html("<h3>Profil: " + json.name + "</h3>"
