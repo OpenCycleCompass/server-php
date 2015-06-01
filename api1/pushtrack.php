@@ -1,13 +1,14 @@
 <?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
-include ('config.php');
-include ('functions.php');
-include("../classes/geocoding.class.php");
+$start_microtime = microtime(true);
+header('Content-Type: application/json; charset=utf-8');
+date_default_timezone_set('Europe/Berlin');
+include('config.php');
+include('functions.php');
 
-$pgr = pg_connect ( $pgr_connectstr );
-if(!$pgr)
-	die ( "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error () );
+$pg = pg_connect($pgr_connectstr);
+if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_last_error())));
+
+include("../classes/geocoding.class.php");
 
 if( isset($_GET["newtrack"])
 		&& isset($_GET['user_token'])
@@ -19,7 +20,7 @@ if( isset($_GET["newtrack"])
 	
 	// user_token passed by the app.
 	$user_token = pg_escape_string($_GET['user_token']);
-	if (verify_token($user_token, $pgr)) {
+	if (verify_token($user_token, $pg)) {
 		// Create new unique track_id
 		// uniqid() generates a 23-character unique string with the giver prefix (ibis_)
 		$track_id = uniqid("tra_", true);
@@ -120,7 +121,7 @@ if( isset($_GET["newtrack"])
 				$city_district = NULL;
 			}
 			
-			pg_query($pgr, "INSERT INTO tracks "
+			pg_query($pg, "INSERT INTO tracks "
 					."(user_token, track_id, created, length, duration, nodes, name, "
 						."comment, public, hash, city, city_district, data_raw) "
 					."VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "', "
@@ -154,5 +155,5 @@ if( isset($_GET["newtrack"])
 	}
 }
 echo($out);
-pg_close($pgr);
+pg_close($pg);
 ?>

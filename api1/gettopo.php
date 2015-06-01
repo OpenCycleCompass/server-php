@@ -1,11 +1,12 @@
 <?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
+$start_microtime = microtime(true);
+header('Content-Type: application/json; charset=utf-8');
+date_default_timezone_set('Europe/Berlin');
 include('config.php');
 include('functions.php');
 
-$pgr = pg_connect($pgr_connectstr);
-if(!$pgr) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
+$pg = pg_connect($pgr_connectstr);
+if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_last_error())));
 
 if(isset($_GET["getedges"]) && isset($_GET["start_lat"]) && isset($_GET["start_lon"]) && isset($_GET["end_lat"]) && isset($_GET["end_lon"]) && ((!isset($_GET["cost"])) || ($_GET["cost"]=="static") || ($_GET["cost"]=="dynamic")) ){
 	$start_lat = floatval($_GET["start_lat"]);

@@ -1,12 +1,14 @@
 <?php
-header ( 'Content-Type: text/html; charset=utf-8' );
-date_default_timezone_set ( 'Europe/Berlin' );
-include ('config.php');
-include ('functions.php');
-include("../classes/geocoding.class.php");
+$start_microtime = microtime(true);
+header('Content-Type: application/json; charset=utf-8');
+date_default_timezone_set('Europe/Berlin');
+include('config.php');
+include('functions.php');
 
 $pg = pg_connect($pgr_connectstr);
-if(!$pg) die("Datenbankverbindung (PostgreSQL) nicht möglich. ".pg_last_error());
+if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_last_error())));
+
+include("../classes/geocoding.class.php");
 
 $geocoding = new Geocoding();
 

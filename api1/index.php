@@ -1,9 +1,12 @@
 <?php
-header('Content-Type: text/html; charset=utf-8');
+$start_microtime = microtime(true);
+header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
 include('config.php');
+include('functions.php');
 
-$pg = pg_connect($pg_connectstr) or die("Datenbankverbindung (PostgreSQL) nicht möglich.".pg_last_error());
+$pg = pg_connect($pgr_connectstr);
+if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_last_error())));
 
 // PostgreSQL Example:
 // Eine SQL-Abfrge ausführen

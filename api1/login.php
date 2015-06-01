@@ -1,11 +1,12 @@
 <?php
-header('Content-Type: text/html; charset=utf-8');
+$start_microtime = microtime(true);
+header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Europe/Berlin');
-// Load config (for db)
 include('config.php');
+include('functions.php');
 
 $pg = pg_connect($pgr_connectstr);
-if(!$pg) die(json_encode(array("error" => "Datenbankverbindung (PostgreSQL) nicht möglich." . pg_last_error())));
+if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_last_error())));
 
 // Start session
 session_start();
