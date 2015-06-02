@@ -10,6 +10,16 @@ if(!$pg) die(json_encode(array("error" => "Database (PostgreSQL) failed." . pg_l
 
 session_start();
 
+$where_clause_usertoken = "";
+if(isset($_GET["user_token"])) {
+	$user_token = explode(";", $_GET["user_token"]);
+	if(count($user_token) > 0) {
+		foreach($user_token as $part) {
+			$where_clause_usertoken .= "OR user_token = '".pg_escape_string($pg, $part)."' ";
+		}
+	}
+}
+
 if(isset($_GET["tracklist"])) {
 	// Return list of tracks (name and track_id) 
 
@@ -18,11 +28,11 @@ if(isset($_GET["tracklist"])) {
 	} else {
 		$start_num = "0";
 	}
-	$only_public = "";
+	$where_clause = "";
 	if(!isset($_SESSION["auth_user"])) {
-		$only_public = "WHERE public = TRUE ";
+		$where_clause = "WHERE public = TRUE ".$where_clause_usertoken;
 	}
-	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks ".$only_public."ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
+	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks ".$where_clause."ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
 	$result = pg_query($pg, $query);
 	if($result && pg_num_rows($result) >= 1){
 		$data = array();
@@ -55,11 +65,11 @@ if(isset($_GET["tracklist"])) {
 	pg_free_result($result);
 } else if(isset($_GET["tracknum"])) {
 	// Return number of tracks (scalar)
-	$only_public = "";
+	$where_clause = "";
 	if(!isset($_SESSION["auth_user"])) {
-		$only_public = "WHERE public = TRUE";
+		$where_clause = "WHERE public = TRUE ".$where_clause_usertoken;
 	}
-	$query = "SELECT count(id) FROM tracks ".$only_public.";";
+	$query = "SELECT count(id) FROM tracks ".$where_clause.";";
 	$result = pg_query($pg, $query);
 	if(pg_num_rows($result) >= 1){
 		$row = pg_fetch_array($result);
