@@ -507,4 +507,15 @@ class processTracks {
 			return array("error" => "Truncate table dyncost failed: ".pg_last_error($this->pg));
 		}
 	}
+
+	public function getDynCostNumSeg() {
+		$query = "SELECT COUNT(*) AS count FROM dyncost;";
+		$result = pg_query($this->pg, $query);
+		if($result && $row = pg_fetch_assoc($result)) {
+			pg_free_result($result);
+			return array("numseg" => intval($row["count"]));
+		} else {
+			return array("error" => "Select count(*) from table dyncost failed: ".pg_last_error($this->pg));
+		}
+	}
 }
