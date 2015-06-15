@@ -33,6 +33,9 @@ if(isset($_GET["tracklist"])) {
 		$where_clause = "WHERE public = TRUE ".$where_clause_usertoken;
 	}
 	$query = "SELECT name, track_id, created, nodes, city, city_district FROM tracks ".$where_clause."ORDER BY created DESC LIMIT 25 OFFSET ".$start_num.";";
+	if(isset($_GET["raw"]) && isset($_SESSION["auth_user"])){
+		$query = "SELECT track_id FROM tracks ORDER BY created DESC ;";
+	}
 	$result = pg_query($pg, $query);
 	if($result && pg_num_rows($result) >= 1){
 		$data = array();
@@ -54,7 +57,12 @@ if(isset($_GET["tracklist"])) {
 			else {
 				$city = "";
 			}
-			$data[] = array("name" => $row["name"] . $city . " (" . date("d.m. ~H", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)", "track_id" => $row["track_id"]);
+			if(isset($_GET["raw"]) && isset($_SESSION["auth_user"])) {
+				$data["tracks"][] = array("track_id" => $row["track_id"]);
+			}
+			else {
+				$data[] = array("name" => $row["name"] . $city . " (" . date("d.m. ~H", intval($row["created"])) . "h; " . $row["nodes"] ." Punkte)", "track_id" => $row["track_id"]);
+			}
 		}
 		$out = json_encode($data);
 	} else {
