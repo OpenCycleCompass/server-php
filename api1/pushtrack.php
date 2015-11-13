@@ -105,29 +105,16 @@ if( isset($_GET["newtrack"])
 			$hash = sha1($track_string);
 			
 			$city = NULL;
-			$city_district = NULL;
 			$geocoding = new Geocoding();
-			$geocoding_city = $geocoding->getCityByCoord($first_lat, $first_lon);
-			if(isset($geocoding_city["city"]) && isset($geocoding_city["city"])) {
-				$city = $geocoding_city["city"];
-				$city_district = $geocoding_city["city_district"];
-			}
-			else if(isset($geocoding_city["city"])) {
-				$city = $geocoding_city["city"];
-				$city_district = NULL;
-			}
-			else {
-				$city = NULL;
-				$city_district = NULL;
-			}
+			$city = $geocoding->getCityByCoord($first_lat, $first_lon);
 			
 			pg_query($pg, "INSERT INTO tracks "
 					."(user_token, track_id, created, length, duration, nodes, name, "
-						."comment, public, hash, city, city_district, data_raw) "
+						."comment, public, hash, city, data_raw) "
 					."VALUES ('" . $user_token . "', '" . $track_id . "',  '" . $created . "', "
 						."'" . $length . "',  '" . $duration . "',    '" . $nodes . "',  '" . $name . "', "
 						."'" . $comment . "', '" . $public . "', '" . $hash . "', '" . pg_escape_string($city) . "', "
-						."'" . pg_escape_string($city_district) . "', '" . pg_escape_string($data_raw) . "')" );
+						."'" . pg_escape_string($data_raw) . "')" );
 			// Hier wird user_token mit track_id verknüpft: DATENSCHUTZ/SPARSAMKEIT? (TODO)
 
 			// TODO Erfolg der query überprüfen? !!!
